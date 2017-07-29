@@ -15,3 +15,8 @@
 /lab?/
 /sol?/
 /myapi.key
+
+
+.idea
+/cmake-build-debug
+CMakeLists.txt
