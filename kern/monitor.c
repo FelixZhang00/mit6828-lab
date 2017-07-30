@@ -10,6 +10,7 @@
 #include <kern/console.h>
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
+#include "pmap.h"
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 
@@ -93,6 +94,13 @@ mon_showmappings(int argc, char **argv, struct Trapframe *tf)
         cprintf("Usage: showmappings begin_addr end_addr\n");
         return 0;
     }
+    if(argc > 3){
+        cprintf("showmappings:Too many arguments:%d\n",argc);
+        return 0;
+    }
+
+    extern pde_t *kern_pgdir;
+    extern pte_t *pgdir_walk(pde_t *pgdir, const void *va, int create);
 
     long begin_addr = strtol(argv[1],NULL,16);
     long end_addr = strtol(argv[2],NULL,16);
@@ -100,6 +108,27 @@ mon_showmappings(int argc, char **argv, struct Trapframe *tf)
         cprintf("begin_addr(0x%x) must smaller than end_addr(0x%x)\n",begin_addr,end_addr);
         return 0;
     }
+    if(end_addr > 0xffffffff){
+        cprintf("end_addr(0x%x) is too large.",end_addr);
+        return 0;
+    }
+
+    uintptr_t begin = ROUNDUP(begin_addr,PGSIZE);
+    uintptr_t end = ROUNDUP(end_addr,PGSIZE);
+
+    pde_t *pdep = &kern_pgdir[PDX(begin)];
+
+    for(;begin < end;begin+=PGSIZE){
+        cprintf("0x%08x--0x%08x: ",begin,begin+PGSIZE);
+        pte_t *pte = pgdir_walk(kern_pgdir,(void *)begin,0);
+        if(!pte){
+            cprintf("not mapped addr=0x%08x\n",begin);
+            return 0;
+        }
+        cprintf("page %08x ",PTE_ADDR(*pte));
+        cprintf("PTE_P: %x, PTE_W: %x, PTE_U: %x\n",*pte&PTE_P,*pte&PTE_W,*pte&PTE_U);
+    }
+
 
     return 0;
 }
