@@ -499,7 +499,16 @@ page_remove(pde_t *pgdir, void *va)
 {
 	// Fill this function in
 	// 清除虚拟地址va的映射
-	
+	struct PageInfo *p_pageInfo;
+	pte_t *p_pte;
+
+	p_pageInfo = page_lookup(pgdir,va,&p_pte);
+
+	if(p_pte){
+		page_decref(p_pageInfo);
+		*p_pte = 0;
+		tlb_invalidate(pgdir,va);
+	}
 }
 
 //
