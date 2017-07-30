@@ -267,7 +267,7 @@ page_init(void)
 	for (i = 0; i < npages; ++i) {
 		if(i == 0){
 			//物理页0，其中保存了IDT和BIOS
-			pages[0].pp_ref = 0;
+			pages[0].pp_ref = 1;
 			pages[0].pp_link = NULL;
 		}else if(i < npages_basemem){
 			pages[i].pp_ref = 0;
@@ -275,11 +275,11 @@ page_init(void)
 			page_free_list = &pages[i];
 		}else if(i >= IOPHYSMEM/PGSIZE && i < EXTPHYSMEM/PGSIZE){
 			//为各种IO设备预留的空间[IOPHYSMEM, EXTPHYSMEM)；
-			pages[i].pp_ref = 0;
+			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		}else if(i >= EXTPHYSMEM/PGSIZE && i < PADDR(boot_alloc(0))/PGSIZE){
 			//其他已经被使用的空间(包括kernel代码、页目录、页描述符表占的空间)
-			pages[i].pp_ref = 0;
+			pages[i].pp_ref = 1;
 			pages[i].pp_link = NULL;
 		}else{
 			pages[i].pp_ref = 0;
