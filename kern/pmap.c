@@ -448,7 +448,19 @@ int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
 	// Fill this function in
-	return 0;
+	// 增加一个物理页pp到虚拟地址va的映射
+	pte_t *p_pte;
+	p_pte = pgdir_walk(pgdir,va,1);
+	if(p_pte){
+		pp->pp_ref++;
+		if(PTE_ADDR(*p_pte)){
+			page_remove(pgdir,va);
+		}
+		*p_pte = page2pa(pp) | perm | PTE_P;
+		return 0;
+	}else{
+		return -E_NO_MEM;
+	}
 }
 
 //
