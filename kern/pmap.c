@@ -381,7 +381,7 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
     if(*pdp & PTE_P){ //检查该页是否在物理内存中分配了
         return (pte_t *)KADDR(PTE_ADDR(*pdp)) + PTX(va);
     }else if(create){ //是否需要分配一个物理页
-        struct PageInfo *pp = page_alloc(1);
+        struct PageInfo *pp = page_alloc(ALLOC_ZERO);
         if(pp){
             pp->pp_ref++;
             *pdp = page2pa(pp) | PTE_P | PTE_W | PTE_U;
@@ -407,6 +407,16 @@ static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
 	// Fill this function in
+    // 将虚拟地址[va,va+size)映射到物理地址[pa,pa+size),
+    // 通过page_walk获取页表地址
+	size_t offset;
+	pte_t *pte;
+	for (offset = 0; offset < size; ++offset) {
+		pte = pgdir_walk(pgdir,(void *)va,1);
+		*pt = pa | perm | PTE_P;
+		pa += PGSIZE;
+		va += PGSIZE;
+	}
 }
 
 //
