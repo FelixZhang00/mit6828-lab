@@ -466,7 +466,17 @@ struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
 	// Fill this function in
-	return NULL;
+	// 查找va映射的物理页，保存在pte_store中
+	pte_t* p_pte;
+	p_pte = pgdir_walk(pgdir,va,0);
+	if(p_pte){
+		if(pte_store){
+			*pte_store = p_pte;
+		}
+		return pa2page(PTE_ADDR(*p_pte));
+	}else{
+		return NULL;
+	}
 }
 
 //
@@ -488,6 +498,8 @@ void
 page_remove(pde_t *pgdir, void *va)
 {
 	// Fill this function in
+	// 清除虚拟地址va的映射
+	
 }
 
 //
