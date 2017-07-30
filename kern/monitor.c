@@ -90,14 +90,14 @@ int
 mon_showmappings(int argc, char **argv, struct Trapframe *tf)
 {
     if(argc != 3){
-        cprintf("Usage: showmappings begin_addr end_addr");
+        cprintf("Usage: showmappings begin_addr end_addr\n");
         return 0;
     }
 
     long begin_addr = strtol(argv[1],NULL,16);
     long end_addr = strtol(argv[2],NULL,16);
     if(begin_addr>end_addr){
-        cprintf("begin_addr(%x) must smaller than end_addr(%x)",begin_addr,end_addr);
+        cprintf("begin_addr(0x%x) must smaller than end_addr(0x%x)\n",begin_addr,end_addr);
         return 0;
     }
 
