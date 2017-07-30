@@ -26,6 +26,7 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "backtrace", "Display stack backtrace", mon_backtrace},
+    { "shutdown", "Shutdown JOS", mon_shutdown },
     { "showmappings", "Display page mappings that start within [va1, va2]", mon_showmappings},
 };
 
