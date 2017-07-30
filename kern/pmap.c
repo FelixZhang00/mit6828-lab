@@ -374,6 +374,21 @@ pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
 	// Fill this function in
+    // 用来找一个虚拟地址所对应的页表项PTE
+    pde_t* pdp; // 指向页目录项
+
+    pdp = &pgdir[PDX(va)]; //根据线性地址得到页目录索引，进一步得到指针
+    if(*pdp & PTE_P){ //检查该页是否在物理内存中分配了
+        return (pte_t *)KADDR(PTE_ADDR(*pdp)) + PTX(va);
+    }else if(create){ //是否需要分配一个物理页
+        struct PageInfo *pp;
+        if(pp = page_alloc(1)){
+            pp->pp_ref++;
+            *pdp = page2pa(pp) | PTE_P | PTE_W | PTE_U;
+            return (pte_t *)KADDR(PTE_ADDR(*pdp)) + PTX(va);
+        }
+    }
+
 	return NULL;
 }
 
