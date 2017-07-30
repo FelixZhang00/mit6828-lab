@@ -381,8 +381,8 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
     if(*pdp & PTE_P){ //检查该页是否在物理内存中分配了
         return (pte_t *)KADDR(PTE_ADDR(*pdp)) + PTX(va);
     }else if(create){ //是否需要分配一个物理页
-        struct PageInfo *pp;
-        if(pp = page_alloc(1)){
+        struct PageInfo *pp = page_alloc(1);
+        if(pp){
             pp->pp_ref++;
             *pdp = page2pa(pp) | PTE_P | PTE_W | PTE_U;
             return (pte_t *)KADDR(PTE_ADDR(*pdp)) + PTX(va);
