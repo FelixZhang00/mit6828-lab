@@ -133,6 +133,33 @@ mon_showmappings(int argc, char **argv, struct Trapframe *tf)
     return 0;
 }
 
+int
+mon_shutdown(int argc, char **argv, struct Trapframe *tf)
+{
+
+    // referenced chaOS from github
+    // [https://github.com/Kijewski/chaOS/]
+
+    const char *s = "Shutdown";
+
+    __asm __volatile ("cli");
+
+    for (;;) {
+        // (phony) ACPI shutdown (http://forum.osdev.org/viewtopic.php?t=16990)
+        // Works for qemu and bochs.
+        outw (0xB004, 0x2000);
+
+        // Magic shutdown code for bochs and qemu.
+        while(*s) {
+            outb (0x8900, *s);
+            ++s;
+        }
+
+        // Magic code for VMWare. Also a hard lock.
+        __asm __volatile ("cli; hlt");
+    }
+}
+
 
 /***** Kernel monitor command interpreter *****/
 
