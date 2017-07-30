@@ -156,6 +156,8 @@ mem_init(void)
 	// array.  'npages' is the number of physical pages in memory.  Use memset
 	// to initialize all fields of each struct PageInfo to 0.
 	// Your code goes here:
+
+	//pages数组存放在boot_alloc开辟出来的物理内存中即kernel的.bass段之后的内存区域
 	pages = (struct PageInfo*)boot_alloc(npages * sizeof(struct PageInfo));
 	memset(pages,0,npages*sizeof(struct PageInfo));
 
@@ -260,6 +262,7 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
+	//先初始化全部页为可用
 	size_t i;
 	for (i = 0; i < npages; i++) {
 		pages[i].pp_ref = 0;
@@ -267,14 +270,17 @@ page_init(void)
 		page_free_list = &pages[i];
 	}
 	size_t num_io,num_ext,free_top;
-	extern char end[];
+
+	//得到不可用的物理内存的页编号
 	num_io = PGNUM(IOPHYSMEM);
 	num_ext = PGNUM(EXTPHYSMEM);
 	free_top = PGNUM(PADDR(boot_alloc(0)));
 
+	//第0页其中保存了IDT和BIOS,标记为已用
 	pages[1].pp_link = pages[0].pp_link;
 	pages[0].pp_link = NULL;
-	
+
+	//IO空洞,标记为已用
 	pages[num_ext].pp_link = pages[num_io].pp_link;
 	for(i = num_io;i<num_ext;i++){
 		pages[i].pp_link = NULL;
