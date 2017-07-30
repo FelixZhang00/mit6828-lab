@@ -262,34 +262,33 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
-	//先初始化全部页为可用
 	size_t i;
-	for (i = 0; i < npages; i++) {
-		pages[i].pp_ref = 0;
-		pages[i].pp_link = page_free_list;
-		page_free_list = &pages[i];
+	page_free_list = NULL;
+	for (i = 0; i < npages; ++i) {
+		if(i == 0){
+			//物理页0，其中保存了IDT和BIOS
+			pages[0].pp_ref = 0;
+			pages[0].pp_link = NULL;
+		}else if(i < npages_basemem){
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
+		}else if(i >= IOPHYSMEM/PGSIZE && i < EXTPHYSMEM/PGSIZE){
+			//为各种IO设备预留的空间[IOPHYSMEM, EXTPHYSMEM)；
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = NULL;
+		}else if(i >= EXTPHYSMEM/PGSIZE && i < PADDR(boot_alloc(0))/PGSIZE){
+			//其他已经被使用的空间(包括kernel代码、页目录、页描述符表占的空间)
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = NULL;
+		}else{
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
+		}
+
 	}
-	size_t num_io,num_ext,free_top;
 
-	//得到不可用的物理内存的页编号
-	num_io = PGNUM(IOPHYSMEM);
-	num_ext = PGNUM(EXTPHYSMEM);
-	free_top = PGNUM(PADDR(boot_alloc(0)));
-
-	//第0页其中保存了IDT和BIOS,标记为已用
-	pages[1].pp_link = pages[0].pp_link;
-	pages[0].pp_link = NULL;
-
-	//IO空洞,标记为已用
-	pages[num_ext].pp_link = pages[num_io].pp_link;
-	for(i = num_io;i<num_ext;i++){
-		pages[i].pp_link = NULL;
-	}
-
-	pages[free_top].pp_link = pages[num_ext].pp_link;
-	for(i = num_ext;i<free_top;i++){
-		pages[i].pp_link = NULL;
-	}
 }
 
 //
