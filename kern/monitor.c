@@ -25,6 +25,7 @@ static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "backtrace", "Display stack backtrace", mon_backtrace},
+    { "showmappings", "Display page mappings that start within [va1, va2]", mon_showmappings},
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -85,6 +86,23 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
+int
+mon_showmappings(int argc, char **argv, struct Trapframe *tf)
+{
+    if(argc != 3){
+        cprintf("Usage: showmappings begin_addr end_addr");
+        return 0;
+    }
+
+    long begin_addr = strtol(argv[1],NULL,16);
+    long end_addr = strtol(argv[2],NULL,16);
+    if(begin_addr>end_addr){
+        cprintf("begin_addr(%x) must smaller than end_addr(%x)",begin_addr,end_addr);
+        return 0;
+    }
+
+    return 0;
+}
 
 
 /***** Kernel monitor command interpreter *****/
