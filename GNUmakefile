@@ -173,6 +173,12 @@ qemu-nox-gdb: $(IMAGES) pre-qemu
 	@echo "***"
 	$(QEMU) -nographic $(QEMUOPTS) -S
 
+qemu-monitor-nox-gdb: $(IMAGES) pre-qemu
+	@echo "***"
+	@echo "*** Now run 'make gdb'." 1>&2
+	@echo "***"
+	$(QEMU) -monitor  -nographic $(QEMUOPTS) -S
+
 print-qemu:
 	@echo $(QEMU)
 
