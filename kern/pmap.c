@@ -413,7 +413,7 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 	pte_t *pte;
 	for (offset = 0; offset < size; ++offset) {
 		pte = pgdir_walk(pgdir,(void *)va,1);
-		*pt = pa | perm | PTE_P;
+		*pte = pa | perm | PTE_P;
 		pa += PGSIZE;
 		va += PGSIZE;
 	}
