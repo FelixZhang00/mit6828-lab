@@ -27,9 +27,14 @@ static struct Command commands[] = {
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
 	{ "backtrace", "Display stack backtrace", mon_backtrace},
     { "shutdown", "Shutdown JOS", mon_shutdown },
+    //mem tools copy from https://github.com/jtyuan/JOS2014/tree/lab2pse
     { "showmappings", "Display page mappings that start within [va1, va2]", mon_showmappings},
     { "setperm", "Set/clear/change permission of the given mapping", mon_setperm },
+    //输出两个地址之间的内容，模仿gdb的格式，4字节为单位。若没有物理地址映射到对应虚拟地址范围，则输出pgunmapped
     { "dump", "Dump memory in the given virtual address range", mon_dump },
+
+    { "showmappings2", "Display page mappings that start within [va1, va2] (simple)", mon_showmappings2},
+
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -90,51 +95,51 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	return 0;
 }
 
-//int
-//mon_showmappings(int argc, char **argv, struct Trapframe *tf)
-//{
-//    if(argc != 3){
-//        cprintf("Usage: showmappings begin_addr end_addr\n");
-//        return 0;
-//    }
-//    if(argc > 3){
-//        cprintf("showmappings:Too many arguments:%d\n",argc);
-//        return 0;
-//    }
-//
-//    extern pde_t *kern_pgdir;
-//    extern pte_t *pgdir_walk(pde_t *pgdir, const void *va, int create);
-//
-//    long begin_addr = strtol(argv[1],NULL,16);
-//    long end_addr = strtol(argv[2],NULL,16);
-//    if(begin_addr>end_addr){
-//        cprintf("begin_addr(0x%x) must smaller than end_addr(0x%x)\n",begin_addr,end_addr);
-//        return 0;
-//    }
-//    if(end_addr > 0xffffffff){
-//        cprintf("end_addr(0x%x) is too large.",end_addr);
-//        return 0;
-//    }
-//
-//    uintptr_t begin = ROUNDUP(begin_addr,PGSIZE);
-//    uintptr_t end = ROUNDUP(end_addr,PGSIZE);
-//
-//    pde_t *pdep = &kern_pgdir[PDX(begin)];
-//
-//    for(;begin < end;begin+=PGSIZE){
-//        cprintf("0x%08x--0x%08x: ",begin,begin+PGSIZE);
-//        pte_t *pte = pgdir_walk(kern_pgdir,(void *)begin,0);
-//        if(!pte){
-//            cprintf("not mapped addr=0x%08x\n",begin);
-//            return 0;
-//        }
-//        cprintf("page %08x ",PTE_ADDR(*pte));
-//        cprintf("PTE_P: %x, PTE_W: %x, PTE_U: %x\n",*pte&PTE_P,*pte&PTE_W,*pte&PTE_U);
-//    }
-//
-//
-//    return 0;
-//}
+int
+mon_showmappings2(int argc, char **argv, struct Trapframe *tf)
+{
+    if(argc != 3){
+        cprintf("Usage: showmappings begin_addr end_addr\n");
+        return 0;
+    }
+    if(argc > 3){
+        cprintf("showmappings:Too many arguments:%d\n",argc);
+        return 0;
+    }
+
+    extern pde_t *kern_pgdir;
+    extern pte_t *pgdir_walk(pde_t *pgdir, const void *va, int create);
+
+    long begin_addr = strtol(argv[1],NULL,16);
+    long end_addr = strtol(argv[2],NULL,16);
+    if(begin_addr>end_addr){
+        cprintf("begin_addr(0x%x) must smaller than end_addr(0x%x)\n",begin_addr,end_addr);
+        return 0;
+    }
+    if(end_addr > 0xffffffff){
+        cprintf("end_addr(0x%x) is too large.",end_addr);
+        return 0;
+    }
+
+    uintptr_t begin = ROUNDUP(begin_addr,PGSIZE);
+    uintptr_t end = ROUNDUP(end_addr,PGSIZE);
+
+    pde_t *pdep = &kern_pgdir[PDX(begin)];
+
+    for(;begin < end;begin+=PGSIZE){
+        cprintf("0x%08x--0x%08x: ",begin,begin+PGSIZE);
+        pte_t *pte = pgdir_walk(kern_pgdir,(void *)begin,0);
+        if(!pte){
+            cprintf("not mapped addr=0x%08x\n",begin);
+            return 0;
+        }
+        cprintf("page %08x ",PTE_ADDR(*pte));
+        cprintf("PTE_P: %x, PTE_W: %x, PTE_U: %x\n",*pte&PTE_P,*pte&PTE_W,*pte&PTE_U);
+    }
+
+
+    return 0;
+}
 
 
 void
