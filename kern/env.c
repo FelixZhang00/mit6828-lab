@@ -348,11 +348,36 @@ load_icode(struct Env *e, uint8_t *binary)
 	//  What?  (See env_run() and env_pop_tf() below.)
 
 	// LAB 3: Your code here.
+	struct Elf* ELFHDR;
+
+	ELFHDR = (struct Elf*)binary;
+	if(ELFHDR->e_magic != ELF_MAGIC){
+		panic("load_icode:magic=0x08%x,not executable.",ELFHDR->e_magic);
+	}
+
+	struct Proghdr *ph,*ph_end;
+	// load each program segment (ignores ph flags)
+	ph = (struct Proghdr *) (binary + ELFHDR->e_phoff);
+	ph_end = ph + ELFHDR->e_phnum;
+
+	//先设置env的页目录，这样后面的elf中程序段的虚拟地址才会加载到此env的虚拟地址。
+	lcr3(PADDR(e->env_pgdir));
+	for (; ph < ph_end; ph++) {
+		if (ph->p_type == ELF_PROG_LOAD) {
+			region_alloc(e, (void *) ph->p_va, ph->p_memsz);
+			memset((void *) ph->p_va, 0, ph->p_memsz);
+			memcpy((void *) ph->p_pa, binary + ph->p_offset, ph->p_filesz);
+		}
+	}
+	lcr3(PADDR(kern_pgdir));
+
+	e->env_tf.tf_eip = ELFHDR->e_entry;
 
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 
 	// LAB 3: Your code here.
+	region_alloc(e, (void *) (USTACKTOP - PGSIZE), PGSIZE);
 }
 
 //
