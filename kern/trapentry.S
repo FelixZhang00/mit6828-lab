@@ -105,7 +105,7 @@ _alltraps:
 
     movw $GD_KD, %ax
     movw %ax, %ds
-    movw $GD_KD %ax
+    movw $GD_KD, %ax
     movw %ax, %es
     pushl %esp
     call trap
