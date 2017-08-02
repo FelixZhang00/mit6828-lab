@@ -290,7 +290,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 		if (pp == NULL) {
 			panic("page_alloc fail!");
 		}
-		page_insert(e->env_pgdir, pp, va, PTE_U | PTE_W);
+		page_insert(e->env_pgdir, pp, va_start, PTE_U | PTE_W);
 	}
 }
 
