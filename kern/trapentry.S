@@ -21,9 +21,6 @@
  * where NAME is the argument passed to TRAPHANDLER.
  */
 #define TRAPHANDLER(name, num)						\
-.data;\
-	.long name;\
-.text;\
 	.globl name;		/* define global symbol for 'name' */	\
 	.type name, @function;	/* symbol type is function */		\
 	.align 2;		/* align function definition */		\
@@ -31,15 +28,11 @@
 	pushl $(num);							\
 	jmp _alltraps
 
-
 /* Use TRAPHANDLER_NOEC for traps where the CPU doesn't push an error code.
  * It pushes a 0 in place of the error code, so the trap frame has the same
  * format in either case.
  */
 #define TRAPHANDLER_NOEC(name, num)					\
-.data;\
-	.long name;\
-.text;\
 	.globl name;							\
 	.type name, @function;						\
 	.align 2;							\
@@ -48,47 +41,33 @@
 	pushl $(num);							\
 	jmp _alltraps
 
-/*
- * Lab 3: Your code here for generating entry points for the different traps.
- */
-#define dummy()\
-.data;\
-	.long 0
+.text
 
-.data
-	.globl handler
-	.align 4
-handler:
-.text
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-	TRAPHANDLER_NOEC(handler0, T_DIVIDE);
-	TRAPHANDLER_NOEC(handler1, T_DEBUG);
-	TRAPHANDLER_NOEC(handler2, T_NMI);
-	TRAPHANDLER_NOEC(handler3, T_BRKPT);
-	TRAPHANDLER_NOEC(handler4, T_OFLOW);
-	TRAPHANDLER_NOEC(handler5, T_BOUND);
-	TRAPHANDLER_NOEC(handler6, T_ILLOP);
-	TRAPHANDLER_NOEC(handler7, T_DEVICE);
-	TRAPHANDLER(handler8, T_DBLFLT);
-	# TRAPHANDLER(handler9, 9);
-	dummy();
-	TRAPHANDLER(handler10, T_TSS);
-	TRAPHANDLER(handler11, T_SEGNP);
-	TRAPHANDLER(handler12, T_STACK);
-	TRAPHANDLER(handler13, T_GPFLT);
-	TRAPHANDLER(handler14, T_PGFLT);
-	# TRAPHANDLER(handler15, 15);
-	dummy();
-	TRAPHANDLER_NOEC(handler16, T_FPERR);
-	TRAPHANDLER_NOEC(handler17, T_ALIGN);
-	TRAPHANDLER_NOEC(handler18, T_MCHK);
-	TRAPHANDLER_NOEC(handler19, T_SIMDERR);
-.data
-	.space 112# (47-19)*4
-.text
-	TRAPHANDLER_NOEC(handler48, T_SYSCALL);
+TRAPHANDLER_NOEC(t_divide, T_DIVIDE)	// 0
+TRAPHANDLER_NOEC(t_debug, T_DEBUG)		// 1
+TRAPHANDLER_NOEC(t_nmi, T_NMI)			// 2
+TRAPHANDLER_NOEC(t_brkpt, T_BRKPT)		// 3
+TRAPHANDLER_NOEC(t_oflow, T_OFLOW)		// 4
+TRAPHANDLER_NOEC(t_bound, T_BOUND)		// 5
+TRAPHANDLER_NOEC(t_illop, T_ILLOP)		// 6
+TRAPHANDLER_NOEC(t_device, T_DEVICE)	// 7
+TRAPHANDLER(t_dblflt, T_DBLFLT)			// 8
+										// 9
+TRAPHANDLER(t_tss, T_TSS)				// 10
+TRAPHANDLER(t_segnp, T_SEGNP)			// 11
+TRAPHANDLER(t_stack, T_STACK)			// 12
+TRAPHANDLER(t_gpflt, T_GPFLT)			// 13
+TRAPHANDLER(t_pgflt, T_PGFLT)			// 14
+										// 15
+TRAPHANDLER_NOEC(t_fperr, T_FPERR)		// 16
+TRAPHANDLER(t_align, T_ALIGN)			// 17
+TRAPHANDLER_NOEC(t_mchk, T_MCHK)		// 18
+TRAPHANDLER_NOEC(t_simderr, T_SIMDERR)	// 19
+
+TRAPHANDLER_NOEC(t_syscall, T_SYSCALL)
 
 
 /*
