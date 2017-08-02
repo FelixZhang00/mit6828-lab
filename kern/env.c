@@ -123,7 +123,7 @@ env_init(void)
         envs[i].env_status=ENV_FREE;
         envs->env_link = NULL;
         if(i<(NENV-1)){
-            envs[i].env_link = envs[i+1];
+            envs[i].env_link = &envs[i+1];
         }
     }
     env_free_list = envs[0];
