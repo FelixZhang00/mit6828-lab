@@ -116,6 +116,17 @@ env_init(void)
 {
 	// Set up envs array
 	// LAB 3: Your code here.
+    int i;
+    env_free_list = NULL;
+    for (i = 0; i < NENV; ++i) {
+        envs[i].env_id = 0;
+        envs[i].env_status=ENV_FREE;
+        envs->env_link = NULL;
+        if(i<(NENV-1)){
+            envs[i].env_link = envs[i+1];
+        }
+    }
+    env_free_list = envs[0];
 
 	// Per-CPU part of the initialization
 	env_init_percpu();
@@ -128,7 +139,7 @@ env_init_percpu(void)
 	lgdt(&gdt_pd);
 	// The kernel never uses GS or FS, so we leave those set to
 	// the user data segment.
-	asm volatile("movw %%ax,%%gs" : : "a" (GD_UD|3));
+	asm volatile("movw %%ax,%%gs" : : "a" (GD_UD|3)); //mov eax, 0x23; movw %ax,%gs
 	asm volatile("movw %%ax,%%fs" : : "a" (GD_UD|3));
 	// The kernel does use ES, DS, and SS.  We'll change between
 	// the kernel and user data segments as needed.
@@ -179,6 +190,10 @@ env_setup_vm(struct Env *e)
 	//    - The functions in kern/pmap.h are handy.
 
 	// LAB 3: Your code here.
+    e->env_pgdir = (pde_t *)page2kva(p);
+	p->pp_ref++;
+
+	memcpy(e->env_pgdir,kern_pgdir,PGSIZE);
 
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
@@ -267,6 +282,16 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   'va' and 'len' values that are not page-aligned.
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
+	void *va_start, va_end;
+	va_start = ROUNDDOWN(va, PGSIZE);
+	va_end = ROUNDUP(va + len, PGSIZE);
+	for (; va_start < va_end; va_start += PGSIZE) {
+		struct PageInfo *pp = page_alloc(0);
+		if (pp == NULL) {
+			panic("page_alloc fail!");
+		}
+		page_insert(e->env_pgdir, pp, va, PTE_U | PTE_W);
+	}
 }
 
 //
