@@ -231,6 +231,7 @@ trap(struct Trapframe *tf)
 	// Dispatch based on what type of trap occurred
 	trap_dispatch(tf);
 
+	// 中断处理程序结束之后返回到用户态
 	// Return to the current environment, which should be running.
 	assert(curenv && curenv->env_status == ENV_RUNNING);
 	env_run(curenv);
