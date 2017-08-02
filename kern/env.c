@@ -126,7 +126,7 @@ env_init(void)
             envs[i].env_link = &envs[i+1];
         }
     }
-    env_free_list = envs[0];
+    env_free_list = &envs[0];
 
 	// Per-CPU part of the initialization
 	env_init_percpu();
@@ -282,7 +282,7 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   'va' and 'len' values that are not page-aligned.
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
-	void *va_start, va_end;
+	void *va_start, *va_end;
 	va_start = ROUNDDOWN(va, PGSIZE);
 	va_end = ROUNDUP(va + len, PGSIZE);
 	for (; va_start < va_end; va_start += PGSIZE) {
