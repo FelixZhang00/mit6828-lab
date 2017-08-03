@@ -190,7 +190,19 @@ trap_dispatch(struct Trapframe *tf)
 		//让monitor响应断点中断
 		monitor(tf);
 		return;
-	}
+	} else if(trap_no == T_SYSCALL){
+
+        int32_t ret_eax = syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,
+                                   tf->tf_regs.reg_ebx,tf->tf_regs.reg_ecx,
+                                   tf->tf_regs.reg_edi,tf->tf_regs.reg_esi);
+        if(tf->tf_regs.reg_eax<0){
+            panic("trap_dispatch:T_SYSCALL,%e",tf->tf_regs.reg_eax);
+        }else{
+            //此时ret_eax一定为正
+            tf->tf_regs.reg_eax = ret_eax;
+        }
+        return;
+    }
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
@@ -225,6 +237,7 @@ trap(struct Trapframe *tf)
 		// will restart at the trap point.
 		curenv->env_tf = *tf;
 		// The trapframe on the stack should be ignored from here on.
+        // 后面对tf指针的修改都会直接影响到用户环境curenv
 		tf = &curenv->env_tf;
 	}
 
