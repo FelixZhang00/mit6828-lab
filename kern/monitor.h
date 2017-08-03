@@ -29,4 +29,12 @@ int mon_dump(int argc, char **argv, struct Trapframe *tf);
 //simple one
 int mon_showmappings2(int argc, char **argv, struct Trapframe *tf);
 
+//breakpoint调试
+int mon_jdb(int argc, char **argv, struct Trapframe *tf);
+int jdb_help(int argc, char **argv, struct Trapframe *tf);
+int jdb_si(int argc, char **argv, struct Trapframe *tf);
+int jdb_con(int argc, char **argv, struct Trapframe *tf);
+int jdb_quit(int argc, char **argv, struct Trapframe *tf);
+
+
 #endif	// !JOS_KERN_MONITOR_H
