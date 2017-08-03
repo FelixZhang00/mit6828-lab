@@ -193,7 +193,7 @@ trap_dispatch(struct Trapframe *tf)
 	} else if(trap_no == T_SYSCALL){
 
         int32_t ret_eax = syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,
-                                   tf->tf_regs.reg_ebx,tf->tf_regs.reg_ecx,
+                                   tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,
                                    tf->tf_regs.reg_edi,tf->tf_regs.reg_esi);
         if(tf->tf_regs.reg_eax<0){
             panic("trap_dispatch:T_SYSCALL,%e",tf->tf_regs.reg_eax);
