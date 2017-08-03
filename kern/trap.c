@@ -183,8 +183,12 @@ trap_dispatch(struct Trapframe *tf)
 	// LAB 3: Your code here.
 	uint32_t trap_no;
 	trap_no = tf->tf_trapno;
-	if(trap_no == T_PGFLT){
+	if (trap_no == T_PGFLT) {
 		page_fault_handler(tf);
+		return;
+	} else if (trap_no == T_BRKPT) {
+		//让monitor响应断点中断
+		monitor(tf);
 		return;
 	}
 
