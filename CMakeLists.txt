@@ -1,0 +1,83 @@
+cmake_minimum_required(VERSION 3.7)
+project(mit6828_lab)
+
+set(CMAKE_CXX_STANDARD 11)
+
+set(SOURCE_FILES
+        boot/boot.S
+        boot/main.c
+        conf/env.mk
+        conf/lab.mk
+        fs/testshell.key
+        inc/assert.h
+        inc/elf.h
+        inc/env.h
+        inc/error.h
+        inc/kbdreg.h
+        inc/lib.h
+        inc/memlayout.h
+        inc/mmu.h
+        inc/stab.h
+        inc/stdarg.h
+        inc/stdio.h
+        inc/string.h
+        inc/syscall.h
+        inc/trap.h
+        inc/types.h
+        inc/x86.h
+        kern/console.c
+        kern/console.h
+        kern/entry.S
+        kern/entrypgdir.c
+        kern/env.c
+        kern/env.h
+        kern/init.c
+        kern/kclock.c
+        kern/kclock.h
+        kern/kdebug.c
+        kern/kdebug.h
+        kern/monitor.c
+        kern/monitor.h
+        kern/pmap.c
+        kern/pmap.h
+        kern/printf.c
+        kern/syscall.c
+        kern/syscall.h
+        kern/trap.c
+        kern/trap.h
+        kern/trapentry.S
+        lib/console.c
+        lib/entry.S
+        lib/exit.c
+        lib/libmain.c
+        lib/panic.c
+        lib/printf.c
+        lib/printfmt.c
+        lib/readline.c
+        lib/string.c
+        lib/syscall.c
+        user/badsegment.c
+        user/breakpoint.c
+        user/buggyhello.c
+        user/buggyhello2.c
+        user/divzero.c
+        user/evilhello.c
+        user/faultread.c
+        user/faultreadkernel.c
+        user/faultwrite.c
+        user/faultwritekernel.c
+        user/hello.c
+        user/sendpage.c
+        user/softint.c
+        user/testbss.c)
+
+include_directories(.)
+include_directories(boot)
+include_directories(conf)
+include_directories(fs)
+include_directories(inc)
+include_directories(kern)
+include_directories(lib)
+include_directories(user)
+
+add_executable(mit6828_lab ${SOURCE_FILES})

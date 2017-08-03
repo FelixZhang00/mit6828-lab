@@ -177,6 +177,7 @@ extern volatile pde_t uvpd[];     // VA of current page directory
  */
 struct PageInfo {
 	// Next page on the free list.
+    // 保存了这个页在空闲页列表中前一个空闲页的位置。若该页已被分配，则为null；
 	struct PageInfo *pp_link;
 
 	// pp_ref is the count of pointers (usually in page table entries)

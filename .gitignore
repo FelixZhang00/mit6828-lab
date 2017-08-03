@@ -15,4 +15,12 @@
 /lab?/
 /sol?/
 /myapi.key
+<<<<<<< HEAD
 /.suf
+=======
+
+
+.idea
+/cmake-build-debug
+*.swp
+>>>>>>> lab3
