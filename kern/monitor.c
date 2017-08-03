@@ -467,6 +467,12 @@ mon_shutdown(int argc, char **argv, struct Trapframe *tf)
     }
 }
 
+int
+mon_jdb(int argc, char **argv, struct Trapframe *tf) {
+    monitor_jdb(tf);
+    return -1;
+}
+
 
 /***** Kernel monitor command interpreter *****/
 
