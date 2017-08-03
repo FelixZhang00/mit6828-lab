@@ -35,6 +35,6 @@ int jdb_help(int argc, char **argv, struct Trapframe *tf);
 int jdb_si(int argc, char **argv, struct Trapframe *tf);
 int jdb_con(int argc, char **argv, struct Trapframe *tf);
 int jdb_quit(int argc, char **argv, struct Trapframe *tf);
-
+void monitor_jdb(struct Trapframe *tf);
 
 #endif	// !JOS_KERN_MONITOR_H
