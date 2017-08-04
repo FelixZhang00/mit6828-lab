@@ -309,20 +309,14 @@ trap(struct Trapframe *tf)
 	// Dispatch based on what type of trap occurred
 	trap_dispatch(tf);
 
-<<<<<<< HEAD
 	// If we made it to this point, then no other environment was
 	// scheduled, so we should return to the current environment
 	// if doing so makes sense.
+	// 中断处理程序结束之后返回到用户态
 	if (curenv && curenv->env_status == ENV_RUNNING)
 		env_run(curenv);
 	else
 		sched_yield();
-=======
-	// 中断处理程序结束之后返回到用户态
-	// Return to the current environment, which should be running.
-	assert(curenv && curenv->env_status == ENV_RUNNING);
-	env_run(curenv);
->>>>>>> lab3
 }
 
 
