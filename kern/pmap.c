@@ -322,7 +322,7 @@ page_init(void)
 			//物理页0，其中保存了IDT和BIOS
 			pages[0].pp_ref = 1;
 			pages[0].pp_link = NULL;
-		}else if(i>=PGNUM(PADDR(MMIOBASE)) && i< PGNUM(PADDR(MMIOLIM))){
+		}else if(i>=PGNUM((uintptr_t)PADDR(MMIOBASE)) && i< PGNUM((uintptr_t)PADDR(MMIOLIM))){
             //lab4: mmio
             pages[i].pp_ref = 1;
             pages[i].pp_link = NULL;
