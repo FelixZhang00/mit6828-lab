@@ -295,14 +295,18 @@ region_alloc(struct Env *e, void *va, size_t len)
 	//   You should round va down, and round (va + len) up.
 	//   (Watch out for corner-cases!)
 	void *va_start, *va_end;
+    int errorcode = 0;
 	va_start = ROUNDDOWN(va, PGSIZE);
 	va_end = ROUNDUP(va + len, PGSIZE);
 	for (; va_start < va_end; va_start += PGSIZE) {
 		struct PageInfo *pp = page_alloc(0);
 		if (pp == NULL) {
-			panic("page_alloc fail!");
+			panic("region_alloc:page_alloc fail!");
 		}
-		page_insert(e->env_pgdir, pp, va_start, PTE_U | PTE_W);
+		if((errorcode=page_insert(e->env_pgdir, pp, va_start, PTE_U | PTE_W))<0){
+            page_free(pp);
+            panic("region_alloc:page_insert fail! error=%e",errorcode);
+        }
 	}
 }
 

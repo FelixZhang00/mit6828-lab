@@ -159,8 +159,37 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 	//   If page_insert() fails, remember to free the page you
 	//   allocated!
 
+    struct Env *env;
+
+    //检查env
+    if (envid2env(envid, &env, 1) < 0)
+        return -E_BAD_ENV;
+
+    if (va >= (void *) UTOP || va != ROUNDDOWN(va,PGSIZE))
+        return -E_INVAL;
+
+    //检查权限
+    int flag = PTE_U | PTE_P;
+
+    if ((perm & flag) != flag)
+        return -E_INVAL;
+
+    if (perm & (~(PTE_U | PTE_P | PTE_AVAIL | PTE_W)))
+        return -E_INVAL;
+
+    struct PageInfo *p = NULL;
+    if (!(p = page_alloc(ALLOC_ZERO)))
+        return -E_NO_MEM;
+
+    int errorcode = 0;
+    if((errorcode=page_insert(env->env_pgdir,p,va,perm))<0){
+        page_free(p);
+        return errorcode;
+    }
+
+    return 0;
 	// LAB 4: Your code here.
-	panic("sys_page_alloc not implemented");
+	//panic("sys_page_alloc not implemented");
 }
 
 // Map the page of memory at 'srcva' in srcenvid's address space
@@ -299,6 +328,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
             return 0;
         case SYS_exofork:
             return sys_exofork();
+        case SYS_page_alloc:
+            return sys_page_alloc((envid_t)a1,(void *)a2,(int)a3);
 		default:
 			return -E_INVAL;
 	}
