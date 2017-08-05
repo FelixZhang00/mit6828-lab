@@ -276,7 +276,16 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
+    struct CpuInfo *c;
+    int i =0;
+    for (c = cpus; c < cpus + ncpu; c++,i++) {
+        if (c == cpus + cpunum())  // We've started already.
+            continue;
 
+        physaddr_t kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+        boot_map_region(kern_pgdir,kstacktop_i,
+                        KSTKSIZE,PADDR(percpu_kstacks[c-cpus]),PTE_W);
+    }
 }
 
 // --------------------------------------------------------------
