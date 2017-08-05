@@ -37,7 +37,9 @@ _pgfault_upcall:
 	movl _pgfault_handler, %eax
 	call *%eax
 	addl $4, %esp			// pop function argument
-	
+
+	// 栈上存着UTrapframe变量，其中有跳转回去所需要的所有寄存器的值，
+	// 让这些正确归位即可，最后esp归位、ret让eip归位
 	// Now the C page fault handler has returned and you must return
 	// to the trap time state.
 	// Push trap-time %eip onto the trap-time stack.
