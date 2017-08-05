@@ -285,6 +285,7 @@ sys_page_unmap(envid_t envid, void *va)
         return -E_INVAL;
 
     page_remove(env->env_pgdir, va);
+    return 0;
 }
 
 // Try to send 'value' to the target env 'envid'.
