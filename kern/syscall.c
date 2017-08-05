@@ -83,9 +83,19 @@ sys_exofork(void)
 	// status is set to ENV_NOT_RUNNABLE, and the register set is copied
 	// from the current environment -- but tweaked so sys_exofork
 	// will appear to return 0.
+    struct Env* env_child;
+    int error=0;
+    if((error=env_alloc(&env_child,curenv->env_id))<0){
+        return error;
+    }
+    env_child->env_status = ENV_NOT_RUNNABLE;
+    env_child->env_tf = curenv->env_tf;
+    env_child->env_tf.tf_regs.reg_eax = 0; //fork在child进程返回0
+
+    return env_child->env_id;
 
 	// LAB 4: Your code here.
-	panic("sys_exofork not implemented");
+	//panic("sys_exofork not implemented");
 }
 
 // Set envid's env_status to status, which must be ENV_RUNNABLE
@@ -287,6 +297,8 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
         case SYS_yield:
             sys_yield();
             return 0;
+        case SYS_exofork:
+            return sys_exofork();
 		default:
 			return -E_INVAL;
 	}
