@@ -371,6 +371,34 @@ page_fault_handler(struct Trapframe *tf)
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
 	// LAB 4: Your code here.
+    if(curenv->env_pgfault_upcall){
+        struct UTrapframe* utf_p;
+		uintptr_t utf_addr;
+
+		//当在User Exception Stack又发生缺页异常
+		if(tf->tf_esp >= (UXSTACKTOP-PGSIZE)
+		   && tf->tf_esp <=UXSTACKTOP-1){
+			utf_addr = tf->tf_esp - 4 - sizeof(struct UTrapframe); //-4是因为有4字节的return addr
+		}else{
+			utf_addr = UXSTACKTOP - sizeof(struct UTrapframe);
+		}
+
+		user_mem_assert(curenv,(void *)utf_addr, sizeof(struct UTrapframe),PTE_W);
+
+		utf_p = (struct UTrapframe *)utf_addr;
+		utf_p->utf_fault_va = fault_va;
+		utf_p->utf_err = tf->tf_err;
+		utf_p->utf_regs = tf->tf_regs;
+		utf_p->utf_eip = tf->tf_eip;
+		utf_p->utf_eflags = tf->tf_eflags;
+		utf_p->utf_esp = tf->tf_esp;
+
+		curenv->env_tf.tf_esp = utf_addr;
+		curenv->env_tf.tf_eip = (uintptr_t)curenv->env_pgfault_upcall;
+		//因为重新设置了eip，env_run的时候就会从handler里处理了。
+		env_run(curenv);
+    }
+
 
 	// Destroy the environment that caused the fault.
 	cprintf("[%08x] user fault va %08x ip %08x\n",
