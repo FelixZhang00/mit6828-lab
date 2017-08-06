@@ -77,9 +77,11 @@ duppage(envid_t envid, unsigned pn)
 	void* p_addr = (void*)addr;
 
 	if((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)){
+		// Map page COW, U and P in child
 		if((r=sys_page_map(0,p_addr,envid,p_addr,PTE_P|PTE_U|PTE_COW))){
 			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
 		}
+		// Map page COW, U and P in parent
 		if ((r = sys_page_map(0, p_addr, 0, p_addr, PTE_P | PTE_U | PTE_COW)) < 0){
 			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
 		}
@@ -125,13 +127,11 @@ fork(void)
 		// Fix it and return 0.
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
+	} else if(envid<0){
+		panic("fork:sys_exfork:%e\n",envid);
 	}
 
-	//allocate a new page for the child's user exception stack
-	if((r=sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE),
-						 PTE_W | PTE_U | PTE_P)<0)){
-		panic("fork:sys_page_alloc fail! (%e)\n",r);
-	}
+	// We're in the parent
 
 	//拷贝父进程的页映射关系到子进程
 	uintptr_t addr;
@@ -141,12 +141,22 @@ fork(void)
 			duppage(envid,PGNUM(addr));
 		}
 	}
+	//allocate a new page for the child's user exception stack
+	//The child can't do this themselves
+	// because the mechanism by which it would is to run the pgfault handler, which
+	// needs to run on the exception stack (catch 22).
+	if((r=sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE),
+						 PTE_W | PTE_U | PTE_P)<0)){
+		panic("fork:sys_page_alloc fail! (%e)\n",r);
+	}
 
 	extern void _pgfault_upcall();
-	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
-	
+	// Set page fault handler for the child
+	if ((r = sys_env_set_pgfault_upcall(envid, _pgfault_upcall)) < 0)
+		panic("sys_env_set_pgfault_upcall: %e\n", r);
+
 	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
-		panic("fork: %e", r);
+		panic("fork:sys_env_set_status: %e", r);
 
 	return envid;
 }
