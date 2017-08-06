@@ -44,7 +44,7 @@ pgfault(struct UTrapframe *utf)
 	if ((r = sys_page_alloc(0, PFTEMP, PTE_P | PTE_U | PTE_W)) < 0) {
 		panic("pgfault: sys_page_alloc PFTEMP (%e)", r);
 	}
-	memmove(PFTEMP,addr,PGSIZE);
+	memcpy(PFTEMP,addr,PGSIZE);
 	if((r=sys_page_map(0,PFTEMP,0,addr,PTE_P | PTE_U | PTE_W))<0){
 		panic("pgfault: sys_page_map (%e)", r);
 	}
