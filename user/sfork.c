@@ -12,7 +12,7 @@ void umain(int argc, char* argv[]) {
         share_val = 10000;
         return;
     }else if(who<0){
-        panic("sfork fail! (%e)",who);
+        panic("sfork fail! who=%d",who);
     }
 
 
