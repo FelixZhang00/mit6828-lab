@@ -235,11 +235,13 @@ trap_dispatch(struct Trapframe *tf)
 	if (trap_no == T_PGFLT) {
 		page_fault_handler(tf);
 		return;
-	} else if (trap_no == T_BRKPT) {
+	}
+	else if (trap_no == T_BRKPT) {
 		//让monitor响应断点中断
 		monitor(tf);
 		return;
-	} else if(trap_no == T_SYSCALL){
+	}
+	else if(trap_no == T_SYSCALL){
 
         int32_t ret_eax = syscall(tf->tf_regs.reg_eax,tf->tf_regs.reg_edx,
                                    tf->tf_regs.reg_ecx,tf->tf_regs.reg_ebx,
@@ -252,6 +254,14 @@ trap_dispatch(struct Trapframe *tf)
         }
         return;
     }
+		// Handle clock interrupts. Don't forget to acknowledge the
+		// interrupt using lapic_eoi() before calling the scheduler!
+		// LAB 4: Your code here.
+	else if(trap_no == IRQ_OFFSET+IRQ_TIMER){
+		lapic_eoi();
+		sched_yield();
+		return;
+	}
 
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
@@ -262,9 +272,6 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 
-	// Handle clock interrupts. Don't forget to acknowledge the
-	// interrupt using lapic_eoi() before calling the scheduler!
-	// LAB 4: Your code here.
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
