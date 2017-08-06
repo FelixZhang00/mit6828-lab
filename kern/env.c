@@ -546,7 +546,7 @@ env_run(struct Env *e)
 	//	e->env_tf to sensible values.
 
 	// LAB 3: Your code here.
-	if(curenv!=NULL){
+	if (curenv && curenv->env_status == ENV_RUNNING){
 		curenv->env_status = ENV_RUNNABLE;
 	}
 	curenv = e;
@@ -557,6 +557,6 @@ env_run(struct Env *e)
 	unlock_kernel();
 	env_pop_tf(&e->env_tf);
 
-	panic("env_run not yet implemented");
+	//panic("env_run not yet implemented");
 }
 
