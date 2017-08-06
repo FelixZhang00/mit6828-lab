@@ -1,0 +1,111 @@
+cmake_minimum_required(VERSION 3.7)
+project(mit6828_lab)
+
+set(CMAKE_CXX_STANDARD 11)
+
+set(SOURCE_FILES
+        boot/boot.S
+        boot/main.c
+        fs/test.c
+        inc/assert.h
+        inc/elf.h
+        inc/env.h
+        inc/error.h
+        inc/kbdreg.h
+        inc/lib.h
+        inc/memlayout.h
+        inc/mmu.h
+        inc/stab.h
+        inc/stdarg.h
+        inc/stdio.h
+        inc/string.h
+        inc/syscall.h
+        inc/trap.h
+        inc/types.h
+        inc/x86.h
+        kern/console.c
+        kern/console.h
+        kern/cpu.h
+        kern/entry.S
+        kern/entrypgdir.c
+        kern/env.c
+        kern/env.h
+        kern/init.c
+        kern/kclock.c
+        kern/kclock.h
+        kern/kdebug.c
+        kern/kdebug.h
+        kern/lapic.c
+        kern/monitor.c
+        kern/monitor.h
+        kern/mpconfig.c
+        kern/mpentry.S
+        kern/picirq.c
+        kern/picirq.h
+        kern/pmap.c
+        kern/pmap.h
+        kern/printf.c
+        kern/sched.c
+        kern/sched.h
+        kern/spinlock.c
+        kern/spinlock.h
+        kern/syscall.c
+        kern/syscall.h
+        kern/trap.c
+        kern/trap.h
+        kern/trapentry.S
+        lib/console.c
+        lib/entry.S
+        lib/exit.c
+        lib/fork.c
+        lib/ipc.c
+        lib/libmain.c
+        lib/panic.c
+        lib/pfentry.S
+        lib/pgfault.c
+        lib/printf.c
+        lib/printfmt.c
+        lib/readline.c
+        lib/string.c
+        lib/syscall.c
+        user/badsegment.c
+        user/breakpoint.c
+        user/buggyhello.c
+        user/buggyhello2.c
+        user/divzero.c
+        user/dumbfork.c
+        user/evilhello.c
+        user/fairness.c
+        user/faultalloc.c
+        user/faultallocbad.c
+        user/faultbadhandler.c
+        user/faultdie.c
+        user/faultevilhandler.c
+        user/faultnostack.c
+        user/faultread.c
+        user/faultreadkernel.c
+        user/faultregs.c
+        user/faultwrite.c
+        user/faultwritekernel.c
+        user/forktree.c
+        user/hello.c
+        user/idle.c
+        user/pingpong.c
+        user/pingpongs.c
+        user/primes.c
+        user/sendpage.c
+        user/softint.c
+        user/spin.c
+        user/stresssched.c
+        user/testbss.c
+        user/yield.c)
+
+include_directories(.)
+include_directories(boot)
+include_directories(fs)
+include_directories(inc)
+include_directories(kern)
+include_directories(lib)
+include_directories(user)
+
+add_executable(mit6828_lab ${SOURCE_FILES})
