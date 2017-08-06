@@ -73,7 +73,7 @@ duppage(envid_t envid, unsigned pn)
 
 	// LAB 4: Your code here.
 	//panic("duppage not implemented");
-	uintptr_t addr = pn<<PTXSHIFT;
+	uintptr_t addr = pn*PGSIZE;
 	void* p_addr = (void*)addr;
 
 	if((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)){
