@@ -162,7 +162,7 @@ fork(void)
 }
 
 // Challenge!
-// 1、parent和child内存空间相互共享。先
+// 1、parent和child内存空间相互共享。
 // 2、将parent的内存拷贝到child中（栈使用COW，异常栈相互独立），
 // 3、将其他部分直接将parent的页映射到child
 int
