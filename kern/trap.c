@@ -263,6 +263,7 @@ trap_dispatch(struct Trapframe *tf)
 		return;
 	}
 
+
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
 	// IRQ line or other reasons. We don't care.

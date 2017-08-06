@@ -339,7 +339,62 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	//panic("sys_ipc_try_send not implemented");
+    struct Env* target_env;
+    int r;
+    if((r=envid2env(envid,&target_env,0))<0){
+        //environment envid doesn't currently exist.
+        return -E_BAD_ENV;
+    }
+    if(target_env->env_ipc_recving == 0){
+        //if envid is not currently blocked in sys_ipc_recv,
+        //or another environment managed to send first.
+        return -E_IPC_NOT_RECV;
+    }
+
+    if(srcva < (void *)UTOP){
+        if(srcva != ROUNDDOWN(srcva,PGSIZE)){
+            //srcva < UTOP but srcva is not page-aligned.
+            return -E_INVAL;
+        }
+
+        pte_t* p_pte;
+        struct PageInfo* page = page_lookup(curenv->env_pgdir,srcva,&p_pte);
+        if(!page){
+            //srcva < UTOP but srcva is not mapped in the caller's
+            //address space.
+            return -E_INVAL;
+        }
+        if((*p_pte &perm) != perm){
+            return -E_INVAL;
+        }
+
+        if((perm & PTE_W) && !(*p_pte & PTE_W)){
+            //if (perm & PTE_W), but srcva is read-only in the
+            //current environment's address space.
+            return -E_INVAL;
+        }
+
+        if(target_env->env_ipc_dstva < (void *)UTOP){
+            if((r=page_insert(target_env->env_pgdir,page,target_env->env_ipc_dstva,perm))<0){
+                //	-E_NO_MEM if there's not enough memory to map srcva in envid's
+                //	address space.
+                return -E_NO_MEM;
+            }
+            //    env_ipc_perm is set to 'perm' if a page was transferred, 0 otherwise.
+            target_env->env_ipc_perm = perm;
+        }
+
+    }
+    target_env->env_ipc_recving = 0;
+    target_env->env_ipc_from = curenv->env_id;
+    target_env->env_ipc_value = value;
+    //The target environment is marked runnable again
+    target_env->env_status = ENV_RUNNABLE;
+    //returning 0 from the paused sys_ipc_recv system call.
+    target_env->env_tf.tf_regs.reg_eax = 0;
+
+    return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -357,7 +412,18 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
+	//panic("sys_ipc_recv not implemented");
+    curenv->env_ipc_recving = 1;
+    if(dstva < (void *)UTOP){
+        if(dstva != ROUNDDOWN(dstva,PGSIZE)){
+            //dstva < UTOP but dstva is not page-aligned.
+            return -E_INVAL;
+        }
+        curenv->env_ipc_dstva = dstva;
+    }
+    curenv->env_status=ENV_NOT_RUNNABLE;
+    sched_yield();
+
 	return 0;
 }
 
@@ -396,6 +462,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
             return sys_env_set_status((envid_t)a1,(int)a2);
         case SYS_env_set_pgfault_upcall:
             return sys_env_set_pgfault_upcall((envid_t)a1, (void *) a2);
+        case SYS_ipc_recv:
+            return sys_ipc_recv((void *)a1);
+        case (SYS_ipc_try_send):
+            return sys_ipc_try_send(a1, a2, (void *) a3, a4);
 		default:
 			return -E_INVAL;
 	}

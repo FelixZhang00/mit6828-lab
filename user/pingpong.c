@@ -14,6 +14,7 @@ umain(int argc, char **argv)
 		ipc_send(who, 0, 0, 0);
 	}
 
+	//in child
 	while (1) {
 		uint32_t i = ipc_recv(&who, 0, 0);
 		cprintf("%x got %d from %x\n", sys_getenvid(), i, who);
