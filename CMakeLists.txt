@@ -6,15 +6,25 @@ set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES
         boot/boot.S
         boot/main.c
+        fs/bc.c
+        fs/fs.c
+        fs/fs.h
+        fs/fsformat.c
+        fs/ide.c
+        fs/serv.c
         fs/test.c
+        inc/args.h
         inc/assert.h
         inc/elf.h
         inc/env.h
         inc/error.h
+        inc/fd.h
+        inc/fs.h
         inc/kbdreg.h
         inc/lib.h
         inc/memlayout.h
         inc/mmu.h
+        inc/partition.h
         inc/stab.h
         inc/stdarg.h
         inc/stdio.h
@@ -54,26 +64,36 @@ set(SOURCE_FILES
         kern/trap.c
         kern/trap.h
         kern/trapentry.S
+        lib/args.c
         lib/console.c
         lib/entry.S
         lib/exit.c
+        lib/fd.c
+        lib/file.c
         lib/fork.c
+        lib/fprintf.c
         lib/ipc.c
         lib/libmain.c
+        lib/pageref.c
         lib/panic.c
         lib/pfentry.S
         lib/pgfault.c
+        lib/pipe.c
         lib/printf.c
         lib/printfmt.c
         lib/readline.c
+        lib/spawn.c
         lib/string.c
         lib/syscall.c
+        lib/wait.c
         user/badsegment.c
         user/breakpoint.c
         user/buggyhello.c
         user/buggyhello2.c
+        user/cat.c
         user/divzero.c
         user/dumbfork.c
+        user/echo.c
         user/evilhello.c
         user/fairness.c
         user/faultalloc.c
@@ -81,6 +101,7 @@ set(SOURCE_FILES
         user/faultbadhandler.c
         user/faultdie.c
         user/faultevilhandler.c
+        user/faultio.c
         user/faultnostack.c
         user/faultread.c
         user/faultreadkernel.c
@@ -89,15 +110,39 @@ set(SOURCE_FILES
         user/faultwritekernel.c
         user/forktree.c
         user/hello.c
+        user/icode.c
         user/idle.c
+        user/init.c
+        user/initsh.c
+        user/ls.c
+        user/lsfd.c
+        user/num.c
         user/pingpong.c
         user/pingpongs.c
         user/primes.c
+        user/primespipe.c
         user/sendpage.c
+        user/sfork.c
+        user/sh.c
         user/softint.c
+        user/spawnfaultio.c
+        user/spawnhello.c
+        user/spawninit.c
         user/spin.c
         user/stresssched.c
         user/testbss.c
+        user/testfdsharing.c
+        user/testfile.c
+        user/testfloat.c
+        user/testkbd.c
+        user/testmalloc.c
+        user/testpipe.c
+        user/testpiperace.c
+        user/testpiperace2.c
+        user/testptelibrary.c
+        user/testpteshare.c
+        user/testshell.c
+        user/writemotd.c
         user/yield.c)
 
 include_directories(.)
