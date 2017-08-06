@@ -11,6 +11,8 @@ void umain(int argc, char* argv[]) {
         cprintf("child: %d\n", share_val);
         share_val = 10000;
         return;
+    }else if(who<0){
+        panic("sfork fail! (%e)",who);
     }
 
 
