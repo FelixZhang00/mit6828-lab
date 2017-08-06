@@ -169,7 +169,8 @@ int
 sfork(void)
 {
 	//panic("sfork not implemented");
-	return -E_INVAL;
+	//return -E_INVAL;
+
     envid_t envid, thisenvid = sys_getenvid();
     int perm;
     int r;
