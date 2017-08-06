@@ -131,6 +131,10 @@ fork(void)
 		panic("fork:sys_page_alloc fail! (%e)\n",r);
 	}
 
+	set_pgfault_handler(pgfault);
+	extern void _pgfault_upcall();
+	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
+	
 	//拷贝父进程的页映射关系到子进程
 	uintptr_t addr;
 	for(addr=0;addr<USTACKTOP;addr+=PGSIZE){
@@ -139,10 +143,6 @@ fork(void)
 			duppage(envid,PGNUM(addr));
 		}
 	}
-
-	set_pgfault_handler(pgfault);
-	extern void _pgfault_upcall();
-	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
 
 	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
 		panic("fork: %e", r);
