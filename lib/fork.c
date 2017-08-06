@@ -25,6 +25,13 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
+	if(!(err & FEC_WR)){
+		panic("pgfault: Page fault NOT caused by a write");
+	}
+	if(!((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
+			&& (uvpt[PGNUM(addr)] & PTE_COW))){
+		panic("pgfault: Page fault NOT caused by COW");
+	}
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
@@ -33,8 +40,19 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 
 	// LAB 4: Your code here.
-
-	panic("pgfault not implemented");
+	addr = ROUNDDOWN(addr,PGSIZE);
+	if ((r = sys_page_alloc(0, PFTEMP, PTE_P | PTE_U | PTE_W)) < 0) {
+		panic("pgfault: sys_page_alloc PFTEMP (%e)", r);
+	}
+	memmove(PFTEMP,addr,PGSIZE);
+	if((r=sys_page_map(0,PFTEMP,0,addr,PTE_P | PTE_U | PTE_W))<0){
+		panic("pgfault: sys_page_map (%e)", r);
+	}
+	if((r=sys_page_unmap(0,PFTEMP))<0){
+		panic("pgfault: sys_page_unmap (%e)", r);
+	}
+	return;
+	//panic("pgfault not implemented");
 }
 
 //
@@ -54,7 +72,23 @@ duppage(envid_t envid, unsigned pn)
 	int r;
 
 	// LAB 4: Your code here.
-	panic("duppage not implemented");
+	//panic("duppage not implemented");
+	uintptr_t addr = pn<<PTXSHIFT;
+	void* p_addr = (void*)addr;
+
+	if((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)){
+		if((r=sys_page_map(0,p_addr,envid,p_addr,PTE_P|PTE_U|PTE_COW))){
+			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
+		}
+		if ((r = sys_page_map(0, p_addr, 0, p_addr, PTE_P | PTE_U | PTE_COW)) < 0){
+			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
+		}
+	}
+	//只读页
+	else if((r = sys_page_map(0, p_addr, envid, p_addr, PTE_P | PTE_U)) < 0){
+		panic("duppage:sys_page_map fail! read-only pn=%08x (%e)",pn,r);
+	}
+
 	return 0;
 }
 
@@ -78,7 +112,42 @@ envid_t
 fork(void)
 {
 	// LAB 4: Your code here.
-	panic("fork not implemented");
+	//panic("fork not implemented");
+	envid_t envid;
+	int r;
+
+	if((envid = sys_exofork())==0){
+		// We're the child.
+		// The copied value of the global variable 'thisenv'
+		// is no longer valid (it refers to the parent!).
+		// Fix it and return 0.
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+
+	//allocate a new page for the child's user exception stack
+	if((r=sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE),
+						 PTE_W | PTE_U | PTE_P)<0)){
+		panic("fork:sys_page_alloc fail! (%e)\n",r);
+	}
+
+	//拷贝父进程的页映射关系到子进程
+	uintptr_t addr;
+	for(addr=0;addr<USTACKTOP;addr+=PGSIZE){
+		if((uvpd[PDX(addr)] & PTE_P)
+				&& (uvpt[PGNUM(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_U)){
+			duppage(envid,PGNUM(addr));
+		}
+	}
+
+	set_pgfault_handler(pgfault);
+	extern void _pgfault_upcall();
+	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
+
+	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
+		panic("fork: %e", r);
+
+	return envid;
 }
 
 // Challenge!
