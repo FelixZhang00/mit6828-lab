@@ -48,6 +48,13 @@ bc_pgfault(struct UTrapframe *utf)
 	// the disk.
 	//
 	// LAB 5: you code here:
+	addr = ROUNDDOWN(addr,PGSIZE);
+	if((r=sys_page_alloc(0,addr,PTE_P|PTE_U|PTE_W))<0){
+		panic("in bc_pgfault, sys_page_alloc: %e", r);
+	}
+	if((r=ide_read(blockno*SECTSIZE,addr,BLKSIZE))<0){
+		panic("in bc_pgfault, ide_read: %e", r);
+	}
 
 	// Clear the dirty bit for the disk block page since we just read the
 	// block from disk
