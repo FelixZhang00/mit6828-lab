@@ -149,32 +149,32 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 {
     // LAB 5: Your code here.
     //panic("file_block_walk not implemented");
-    if (filebno >= NDIRECT + NINDIRECT) {
-        return -E_INVAL;
-    }
-    if (!f) {
-        return -E_INVAL;
-    }
-    if (filebno < NDIRECT) {
-        if (ppdiskbno) {
-            *ppdiskbno = &f->f_direct[filebno];
-        }
-        return 0;
-    }
-    //大于NDIRECT个block的文件这样做并不正确
-    uint32_t blockno;
-    if (!f->f_indirect) {
-        if (!alloc) {
+    // Direct block
+    if (filebno < NDIRECT)
+        *ppdiskbno = &f->f_direct[filebno];
+    else if (filebno < (NDIRECT + NINDIRECT)) {
+        // Indirect block
+        if (f->f_indirect) {
+            *ppdiskbno = &((uint32_t *) diskaddr(f->f_indirect))[filebno - NDIRECT];
+
+            // Allocate new indirect block
+        } else if (alloc && !f->f_indirect) {
+            uint32_t new_blockno = alloc_block();
+            if (!new_blockno)
+                return -E_NO_DISK;
+            memset(diskaddr(new_blockno), 0, BLKSIZE);
+            f->f_indirect = new_blockno;
+            *ppdiskbno = &((uint32_t *) diskaddr(f->f_indirect))[filebno - NDIRECT];
+
+            // No indirect block and we can't allocate one
+        } else if (!alloc && !f->f_indirect)
             return -E_NOT_FOUND;
-        }
-        if ((blockno = alloc_block()) < 0) {
-            return -E_NO_DISK;
-        }
-        memset(diskaddr(blockno), 0, BLKSIZE);
-        f->f_indirect = blockno;
-    }
-    //根据finishfile函数得知可以这样写
-    *ppdiskbno = &((uintptr_t *) diskaddr(f->f_indirect))[filebno - NDIRECT];
+
+        // Out of range
+    } else
+        return -E_INVAL;
+
+    return 0;
 
     return 0;
 }
@@ -193,19 +193,21 @@ file_get_block(struct File *f, uint32_t filebno, char **blk)
        // LAB 5: Your code here.
        //panic("file_get_block not implemented");
     int r;
-    uint32_t *pdiskbno;
-    uint32_t blkno;
+    uint32_t *pblockno;
 
-    if ((r = file_block_walk(f, filebno, &pdiskbno, true)) < 0)
+    if ((r = file_block_walk(f, filebno, &pblockno, 1)) != 0) {
+        cprintf("in file_get_block; error from file_block_walk %e\n", r);
         return r;
-
-    if (!*pdiskbno) {
-        if ((blkno = alloc_block()) < 0)
-            return -E_NO_DISK;
-        *pdiskbno = blkno;
     }
 
-    *blk = diskaddr(*pdiskbno);
+    // No block mapped at this block number, allocate and assign one
+    if (!*pblockno) {
+        *pblockno = alloc_block();
+        if (*pblockno < 0)
+            return -E_NO_DISK;
+    }
+
+    *blk = (char *) diskaddr(*pblockno);
 
     return 0;
 }
