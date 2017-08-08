@@ -52,7 +52,7 @@ bc_pgfault(struct UTrapframe *utf)
 	if((r=sys_page_alloc(0,addr,PTE_P|PTE_U|PTE_W))<0){
 		panic("in bc_pgfault, sys_page_alloc: %e", r);
 	}
-	if((r=ide_read(blockno*SECTSIZE,addr,BLKSIZE))<0){
+	if((r=ide_read(blockno*BLKSECTS,addr,BLKSECTS))<0){
 		panic("in bc_pgfault, ide_read: %e", r);
 	}
 
@@ -84,7 +84,12 @@ flush_block(void *addr)
 		panic("flush_block of bad va %08x", addr);
 
 	// LAB 5: Your code here.
-	panic("flush_block not implemented");
+	//panic("flush_block not implemented");
+	addr = ROUNDDOWN(addr,PGSIZE);
+	int r;
+	if((r=ide_write(blockno*SECTSIZE,))<0){
+
+	}
 }
 
 // Test that the block cache works, by smashing the superblock and
