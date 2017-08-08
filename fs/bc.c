@@ -87,6 +87,7 @@ check_bc(void)
 {
 	struct Super backup;
 
+	//此时diskaddr虚地址并没有内存页分配，所以会触发缺页异常
 	// back up super block
 	memmove(&backup, diskaddr(1), sizeof backup);
 
