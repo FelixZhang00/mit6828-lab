@@ -62,11 +62,11 @@ alloc_block(void)
 	// contains the in-use bits for BLKBITSIZE blocks.  There are
 	// super->s_nblocks blocks in the disk altogether.
 	int i;
-	for(i=0;i<super->s_nblocks;i++){
-		if(block_is_free(i)){
-			//标记这个block为已用
-			bitmap[i/32] |= ~(1<<(i%32));
-			flush_block(diskaddr(i / BLKBITSIZE+2));
+	for (i = 0; i < super->s_nblocks; i++) {
+		if (block_is_free(i)) {
+			// mark the blockno == i in-use
+			bitmap[i / 32] &= ~(1 << ( i %32));
+			flush_block(diskaddr(2));
 			return i;
 		}
 	}
