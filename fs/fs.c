@@ -66,7 +66,7 @@ alloc_block(void)
 		if(block_is_free(i)){
 			//标记这个block为已用
 			bitmap[i/32] |= ~(1<<(i%32));
-			flush_block(diskaddr(2));
+			flush_block(diskaddr(i / BLKBITSIZE+2));
 			return i;
 		}
 	}
