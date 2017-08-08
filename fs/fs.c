@@ -161,6 +161,7 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
         }
         return 0;
     }
+    //大于NDIRECT个block的文件这样做并不正确
     uint32_t blockno;
     if (!f->f_indirect) {
         if (!alloc) {
