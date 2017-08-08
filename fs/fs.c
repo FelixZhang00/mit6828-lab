@@ -43,6 +43,7 @@ free_block(uint32_t blockno)
 	// Blockno zero is the null pointer of block numbers.
 	if (blockno == 0)
 		panic("attempt to free zero block");
+	//bitmap中1表示空闲，0表示已用
 	bitmap[blockno/32] |= 1<<(blockno%32);
 }
 
@@ -60,10 +61,21 @@ alloc_block(void)
 	// The bitmap consists of one or more blocks.  A single bitmap block
 	// contains the in-use bits for BLKBITSIZE blocks.  There are
 	// super->s_nblocks blocks in the disk altogether.
+	int i;
+	for(i=0;i<super->s_nblocks;i++){
+		if(block_is_free(i)){
+			//标记这个block为已用
+			bitmap[i/32] |= ~(1<<(i%32));
+			flush_block(diskaddr(2));
+			return i;
+		}
+	}
 
 	// LAB 5: Your code here.
-	panic("alloc_block not implemented");
+	//panic("alloc_block not implemented");
+
 	return -E_NO_DISK;
+
 }
 
 // Validate the file system bitmap.
