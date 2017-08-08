@@ -66,6 +66,7 @@ alloc_block(void)
 		if (block_is_free(i)) {
 			// mark the blockno == i in-use
 			bitmap[i / 32] &= ~(1 << ( i %32));
+			//bitmap前还有两个块作为boot sector和super block,第2个才是bitmap的扇区
 			flush_block(diskaddr(2));
 			return i;
 		}
