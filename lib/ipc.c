@@ -30,7 +30,7 @@ ipc_recv(envid_t *from_env_store, void *pg, int *perm_store)
 		*from_env_store = 0;
 	}
 	if(perm_store){
-		perm_store = 0;
+		*perm_store = 0;
 	}
 	if(!pg){
 		//in 'sys_ipc_try_send' we use 'va < UTOP', here simple use 0xfffffffff
