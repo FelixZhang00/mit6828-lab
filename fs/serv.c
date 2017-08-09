@@ -119,7 +119,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 	// Find an open file ID
 	if ((r = openfile_alloc(&o)) < 0) {
 		if (debug)
-			cprintf("openfile_alloc failed: %e", r);
+			cprintf("openfile_alloc failed: %e\n", r);
 		return r;
 	}
 	fileid = r;
@@ -130,14 +130,14 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 			if (!(req->req_omode & O_EXCL) && r == -E_FILE_EXISTS)
 				goto try_open;
 			if (debug)
-				cprintf("file_create failed: %e", r);
+				cprintf("file_create failed: %e\n", r);
 			return r;
 		}
 	} else {
 try_open:
 		if ((r = file_open(path, &f)) < 0) {
 			if (debug)
-				cprintf("file_open failed: %e", r);
+				cprintf("file_open failed: %e\n", r);
 			return r;
 		}
 	}
@@ -152,7 +152,7 @@ try_open:
 	}
 	if ((r = file_open(path, &f)) < 0) {
 		if (debug)
-			cprintf("file_open failed: %e", r);
+			cprintf("file_open failed: %e\n", r);
 		return r;
 	}
 

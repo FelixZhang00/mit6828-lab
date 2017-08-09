@@ -382,9 +382,10 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
             //address space.
             return -E_INVAL;
         }
-        if((*p_pte &perm) != perm){
+
+        if((perm & PTE_U) == 0 || (perm & PTE_P) == 0 || (perm & ~PTE_SYSCALL) != 0)
             return -E_INVAL;
-        }
+
 
         if((perm & PTE_W) && !(*p_pte & PTE_W)){
             //if (perm & PTE_W), but srcva is read-only in the
