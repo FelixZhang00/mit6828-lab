@@ -146,6 +146,13 @@ runit:
 	if ((r = spawn(argv[0], (const char**) argv)) < 0)
 		cprintf("spawn %s: %e\n", argv[0], r);
 
+	if(debug){
+		cprintf("SPAWN:success:");
+		for (i = 0; argv[i]; i++)
+			cprintf(" %s", argv[i]);
+		cprintf("\n");
+	}
+
 	// In the parent, close all file descriptors and wait for the
 	// spawned command to exit.
 	close_all();
