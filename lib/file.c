@@ -15,6 +15,10 @@ union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 static int
 fsipc(unsigned type, void *dstva)
 {
+	if(debug){
+		cprintf("begin [%08x] fsipc %d %08x\n", thisenv->env_id, type, *(uint32_t *)&fsipcbuf);
+	}
+
 	static envid_t fsenv;
 	if (fsenv == 0)
 		fsenv = ipc_find_env(ENV_TYPE_FS);
