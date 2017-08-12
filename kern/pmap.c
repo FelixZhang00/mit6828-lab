@@ -469,15 +469,23 @@ static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
 	// Fill this function in
-    // 将虚拟地址[va,va+size)映射到物理地址[pa,pa+size),
-    // 通过page_walk获取页表地址
-	size_t offset;
-	pte_t *pte;
-	for (offset = 0; offset < size; offset += PGSIZE) {
-		pte = pgdir_walk(pgdir,(void *)va,1);
-		*pte = pa | perm | PTE_P;
-		pa += PGSIZE;
-		va += PGSIZE;
+	// 将虚拟地址[va,va+size)映射到物理地址[pa,pa+size),
+	// 通过page_walk获取页表地址
+	pte_t *ptep;
+	uintptr_t cv;
+	physaddr_t cp;
+
+	if (perm & PTE_PS) {
+		for (cv = 0, cp = pa; cv < size; cv += PTSIZE, cp += PTSIZE) {
+			ptep = &pgdir[PDX(va + cv)];
+			*ptep = cp | perm | PTE_P;
+		}
+	} else {
+		for (cv = 0, cp = pa; cv < size; cv += PGSIZE, cp += PGSIZE) {
+			ptep = pgdir_walk(pgdir, (const void *) (va + cv), 1);
+			if (ptep)
+				*ptep = cp | perm | PTE_P;
+		}
 	}
 }
 
