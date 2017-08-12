@@ -26,7 +26,7 @@ pgfault(struct UTrapframe *utf)
 
 	// LAB 4: Your code here.
 	if(!(err & FEC_WR)){
-		panic("pgfault: Page fault NOT caused by a write");
+		panic("pgfault: Page fault addr[%08x] NOT caused by a write\n",addr);
 	}
 	if(!((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
 			&& (uvpt[PGNUM(addr)] & PTE_COW))){
