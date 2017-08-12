@@ -1,7 +1,7 @@
 #include <inc/lib.h>
 
 #define BUFSIZ 1024		/* Find the buffer overrun bug! */
-int debug = 0;
+int debug = 1;
 
 
 // gettoken(s, 0) prepares gettoken for subsequent calls and returns 0.
@@ -55,7 +55,16 @@ again:
 			// then close the original 'fd'.
 
 			// LAB 5: Your code here.
-			panic("< redirection not implemented");
+			//panic("< redirection not implemented");
+			if((fd = open(t,O_RDONLY)) <0){
+				cprintf("sh:runcmd:open (%s) fail:%e",t,fd);
+				exit();
+			}
+			if(fd!=0){
+				dup(fd,0);
+				close(fd);
+			}
+
 			break;
 
 		case '>':	// Output redirection
@@ -145,6 +154,13 @@ runit:
 	// Spawn the command!
 	if ((r = spawn(argv[0], (const char**) argv)) < 0)
 		cprintf("spawn %s: %e\n", argv[0], r);
+
+	if(debug){
+		cprintf("SPAWN:success:");
+		for (i = 0; argv[i]; i++)
+			cprintf(" %s", argv[i]);
+		cprintf("\n");
+	}
 
 	// In the parent, close all file descriptors and wait for the
 	// spawned command to exit.

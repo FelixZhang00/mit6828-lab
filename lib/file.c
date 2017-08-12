@@ -2,7 +2,7 @@
 #include <inc/string.h>
 #include <inc/lib.h>
 
-#define debug 0
+#define debug 1
 
 union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 
@@ -15,6 +15,10 @@ union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 static int
 fsipc(unsigned type, void *dstva)
 {
+	if(debug){
+		cprintf("begin [%08x] fsipc %d %08x\n", thisenv->env_id, type, *(uint32_t *)&fsipcbuf);
+	}
+
 	static envid_t fsenv;
 	if (fsenv == 0)
 		fsenv = ipc_find_env(ENV_TYPE_FS);
@@ -76,6 +80,9 @@ open(const char *path, int mode)
 
 	if ((r = fd_alloc(&fd)) < 0)
 		return r;
+
+	//fixme felix debug
+	cprintf("open %s ok.fd=%d\n",path,r);
 
 	strcpy(fsipcbuf.open.req_path, path);
 	fsipcbuf.open.req_omode = mode;
@@ -141,7 +148,15 @@ devfile_write(struct Fd *fd, const void *buf, size_t n)
 	// remember that write is always allowed to write *fewer*
 	// bytes than requested.
 	// LAB 5: Your code here
-	panic("devfile_write not implemented");
+	//panic("devfile_write not implemented");
+	int r;
+	fsipcbuf.write.req_n = MIN(sizeof(fsipcbuf.write.req_buf),n); // 最多req_buf数组的大小
+	memmove(fsipcbuf.write.req_buf, buf, fsipcbuf.write.req_n);
+	fsipcbuf.write.req_fileid = fd->fd_file.id;
+	if ((r = fsipc(FSREQ_WRITE, NULL)) < 0)
+		return r;
+
+	return r;
 }
 
 static int

@@ -89,6 +89,9 @@ spawn(const char *prog, const char **argv)
 		return r;
 	fd = r;
 
+	//fixme felix debug
+	cprintf("spawn:open %s ok.fd=%d\n",prog,fd);
+
 	// Read elf header
 	elf = (struct Elf*) elf_buf;
 	if (readn(fd, elf_buf, sizeof(elf_buf)) != sizeof(elf_buf)
@@ -302,6 +305,19 @@ static int
 copy_shared_pages(envid_t child)
 {
 	// LAB 5: Your code here.
+	int r;
+	void *addr;
+
+	for (addr = 0; addr < (void *) USTACKTOP; addr += PGSIZE) {
+		if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
+			&& (uvpt[PGNUM(addr)] & PTE_U)
+			&& (uvpt[PGNUM(addr)] & PTE_SHARE))
+			if ((r = sys_page_map(0, addr, child, addr,
+								  uvpt[PGNUM(addr)] & PTE_SYSCALL)) < 0)
+				return r;
+
+	}
+
 	return 0;
 }
 

@@ -64,6 +64,7 @@ serial_intr(void)
 		cons_intr(serial_proc_data);
 }
 
+// ouput a char to serial port
 static void
 serial_putc(int c)
 {
@@ -197,6 +198,7 @@ cga_putc(int c)
 	}
 
 	// What is the purpose of this?
+	// 当一屏数据满时，刷新屏幕
 	if (crt_pos >= CRT_SIZE) {
 		int i;
 

@@ -9,7 +9,7 @@
 #include "fs.h"
 
 
-#define debug 0
+#define debug 1
 
 // The file system server maintains three structures
 // for each open file.
@@ -119,7 +119,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 	// Find an open file ID
 	if ((r = openfile_alloc(&o)) < 0) {
 		if (debug)
-			cprintf("openfile_alloc failed: %e", r);
+			cprintf("openfile_alloc failed: %e\n", r);
 		return r;
 	}
 	fileid = r;
@@ -130,14 +130,14 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 			if (!(req->req_omode & O_EXCL) && r == -E_FILE_EXISTS)
 				goto try_open;
 			if (debug)
-				cprintf("file_create failed: %e", r);
+				cprintf("file_create failed: %e\n", r);
 			return r;
 		}
 	} else {
 try_open:
 		if ((r = file_open(path, &f)) < 0) {
 			if (debug)
-				cprintf("file_open failed: %e", r);
+				cprintf("file_open failed: %e\n", r);
 			return r;
 		}
 	}
@@ -152,7 +152,7 @@ try_open:
 	}
 	if ((r = file_open(path, &f)) < 0) {
 		if (debug)
-			cprintf("file_open failed: %e", r);
+			cprintf("file_open failed: %e\n", r);
 		return r;
 	}
 
@@ -172,6 +172,10 @@ try_open:
 	// store its permission in *perm_store
 	*pg_store = o->o_fd;
 	*perm_store = PTE_P|PTE_U|PTE_W|PTE_SHARE;
+
+    if(debug){
+        cprintf("serve_open:pg_store ok.\n");
+    }
 
 	return 0;
 }
@@ -214,7 +218,17 @@ serve_read(envid_t envid, union Fsipc *ipc)
 		cprintf("serve_read %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// Lab 5: Your code here:
-	return 0;
+	int r;
+	struct OpenFile *o;
+	if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
+		return r;
+
+	if((r=file_read(o->o_file,ret->ret_buf,req->req_n,o->o_fd->fd_offset))<0){
+		return r;
+	}
+	o->o_fd->fd_offset += r;
+
+	return r;
 }
 
 
@@ -229,7 +243,18 @@ serve_write(envid_t envid, struct Fsreq_write *req)
 		cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// LAB 5: Your code here.
-	panic("serve_write not implemented");
+	//panic("serve_write not implemented");
+	int r;
+	struct OpenFile *o;
+	if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
+		return r;
+
+	if((r=file_write(o->o_file,req->req_buf,req->req_n,o->o_fd->fd_offset))<0){
+		return r;
+	}
+	o->o_fd->fd_offset += r;
+
+	return r;
 }
 
 // Stat ipc->stat.req_fileid.  Return the file's struct Stat to the
