@@ -174,7 +174,7 @@ try_open:
 	*perm_store = PTE_P|PTE_U|PTE_W|PTE_SHARE;
 
     if(debug){
-        cprintf("serve_open:pg_store ok.");
+        cprintf("serve_open:pg_store ok.\n");
     }
 
 	return 0;
