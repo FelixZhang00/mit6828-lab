@@ -79,7 +79,7 @@ duppage(envid_t envid, unsigned pn)
 	//Lab 5:
 	// If the page table entry has the PTE_SHARE bit set, just copy the mapping directly
 	if(uvpt[pn] & PTE_SHARE){
-		if((r=sys_page_map(0,addr,envid,addr,uvpt[pn] & PTE_SYSCALL))<0){
+		if((r=sys_page_map(0,p_addr,envid,p_addr,uvpt[pn] & PTE_SYSCALL))<0){
 			//failed!
 			return r;
 		}
