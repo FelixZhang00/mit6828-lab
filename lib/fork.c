@@ -76,6 +76,16 @@ duppage(envid_t envid, unsigned pn)
 	uintptr_t addr = pn*PGSIZE;
 	void* p_addr = (void*)addr;
 
+	//Lab 5:
+	// If the page table entry has the PTE_SHARE bit set, just copy the mapping directly
+	if(uvpt[pn] & PTE_SHARE){
+		if((r=sys_page_map(0,addr,envid,addr,uvpt[pn] & PTE_SYSCALL))<0){
+			//failed!
+			return r;
+		}
+		return 0;
+	}
+
 	if((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)){
 		// Map page COW, U and P in child
 		if((r=sys_page_map(0,p_addr,envid,p_addr,PTE_P|PTE_U|PTE_COW))){
