@@ -329,37 +329,43 @@ page_init(void)
 	// Change the code to reflect this.
 	// NB: DO NOT actually touch the physical memory corresponding to
 	// free pages!
-	size_t i;
-	page_free_list = NULL;
-	for (i = 0; i < npages; ++i) {
-		if(i == 0){
-			//物理页0，其中保存了IDT和BIOS
-			pages[0].pp_ref = 1;
-			pages[0].pp_link = NULL;
-		}else if(i==PGNUM((uintptr_t)MPENTRY_PADDR)){
-            //lab4: mmio
-            pages[i].pp_ref = 1;
-            pages[i].pp_link = NULL;
-        }else if(i < npages_basemem){
-			pages[i].pp_ref = 0;
-			pages[i].pp_link = page_free_list;
-			page_free_list = &pages[i];
-		}else if(i >= IOPHYSMEM/PGSIZE && i < EXTPHYSMEM/PGSIZE){
-			//为各种IO设备预留的空间[IOPHYSMEM, EXTPHYSMEM)；
-			pages[i].pp_ref = 1;
-			pages[i].pp_link = NULL;
-		}else if(i >= EXTPHYSMEM/PGSIZE && i < PADDR(boot_alloc(0))/PGSIZE){
-			//其他已经被使用的空间(包括kernel代码、页目录、页描述符表占的空间)
-			pages[i].pp_ref = 1;
-			pages[i].pp_link = NULL;
-		}else{
-			pages[i].pp_ref = 0;
-			pages[i].pp_link = page_free_list;
-			page_free_list = &pages[i];
-		}
-
+	size_t i, range_io, range_ext, range_mmio, free_top;
+	for (i = 0; i < npages; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
 	}
+	extern char end[];
+	range_io = PGNUM(IOPHYSMEM);
+	range_ext = PGNUM(EXTPHYSMEM);
+	range_mmio = PGNUM(MPENTRY_PADDR);
+	free_top = PGNUM(PADDR(boot_alloc(0)));
 
+	// 1) Mark physical page 0 as in use.
+	pages[1].pp_link = pages[0].pp_link;
+	pages[0].pp_link = NULL;
+
+	// 3) IO hole [IOPHYSMEM, EXTPHYSMEM)
+	pages[range_ext].pp_link = pages[range_io].pp_link;
+	for (i = range_io; i < range_ext; i++)
+		pages[i].pp_link = NULL;
+
+	// 4) extended memory, there part will not be affected,
+	// even if PSE_ENABLED is set (4K 'pages' in side 4M pages
+	// would never be visited).
+	pages[free_top].pp_link = pages[range_ext].pp_link;
+	for (i = range_ext; i < free_top; i++)
+		pages[i].pp_link = NULL;
+
+	// Lab 4:
+	pages[range_mmio+1].pp_link = pages[range_mmio].pp_link;
+	pages[range_mmio].pp_link = NULL;
+
+	// for (i = 1; i < range_mmio; i++) {
+ //        pages[i].pp_ref = 0;
+ //        pages[i].pp_link = page_free_list;
+ //        page_free_list = &pages[i];
+ //    }
 }
 
 //
