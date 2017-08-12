@@ -664,21 +664,23 @@ int
 user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
-    uintptr_t cur = (uintptr_t)va;
-    uintptr_t end = (uintptr_t)va+len;
+	void *cur = (void *)(uintptr_t)va;
+	void *top = ((void *)(uintptr_t)cur) + len;
+	pte_t *ptep;
 
-    pte_t *p_pte;
-    for(;cur<end;cur=ROUNDDOWN(cur+PGSIZE,PGSIZE)){
-        if(cur>ULIM){
-            user_mem_check_addr = cur;
-            return -E_FAULT;
-        }
-        page_lookup(env->env_pgdir,(void*)cur,&p_pte);
-        if(!(p_pte!=NULL && ((*p_pte & perm) == perm))){
-            user_mem_check_addr = cur;
-            return -E_FAULT;
-        }
-    }
+	perm |= PTE_P;
+
+	for (; cur < top; cur = ROUNDDOWN(cur+PGSIZE, PGSIZE)) {
+		if ((uint32_t) cur > ULIM) {
+			user_mem_check_addr = (uintptr_t) cur;
+			return -E_FAULT;
+		}
+		page_lookup(env->env_pgdir, cur, &ptep);
+		if (!(ptep && ((*ptep & perm) == perm))) {
+			user_mem_check_addr = (uintptr_t) cur;
+			return -E_FAULT;
+		}
+	}
 
 	return 0;
 }
