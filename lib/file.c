@@ -77,6 +77,9 @@ open(const char *path, int mode)
 	if ((r = fd_alloc(&fd)) < 0)
 		return r;
 
+	//fixme felix debug
+	cprintf("open %s ok.fd=%d\n",path,fd);
+
 	strcpy(fsipcbuf.open.req_path, path);
 	fsipcbuf.open.req_omode = mode;
 

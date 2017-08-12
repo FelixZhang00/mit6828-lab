@@ -90,7 +90,7 @@ spawn(const char *prog, const char **argv)
 	fd = r;
 
 	//fixme felix debug
-	cprintf("spawn:open %s ok.fd=%d",prog,fd);
+	cprintf("spawn:open %s ok.fd=%d\n",prog,fd);
 
 	// Read elf header
 	elf = (struct Elf*) elf_buf;
