@@ -2,7 +2,7 @@
 #include <inc/string.h>
 #include <inc/lib.h>
 
-#define debug 0
+#define debug 1
 
 union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 
@@ -78,7 +78,7 @@ open(const char *path, int mode)
 		return r;
 
 	//fixme felix debug
-	cprintf("open %s ok.fd=%d\n",path,fd);
+	cprintf("open %s ok.fd=%d\n",path,r);
 
 	strcpy(fsipcbuf.open.req_path, path);
 	fsipcbuf.open.req_omode = mode;
