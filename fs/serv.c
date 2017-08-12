@@ -173,6 +173,10 @@ try_open:
 	*pg_store = o->o_fd;
 	*perm_store = PTE_P|PTE_U|PTE_W|PTE_SHARE;
 
+    if(debug){
+        cprintf("serve_open:pg_store ok.");
+    }
+
 	return 0;
 }
 
