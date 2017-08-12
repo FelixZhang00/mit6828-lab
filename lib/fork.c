@@ -25,13 +25,12 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
-	if(!(err & FEC_WR)){
-		panic("pgfault: Page fault addr[%08x] NOT caused by a write\n",addr);
-	}
-	if(!((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
-			&& (uvpt[PGNUM(addr)] & PTE_COW))){
-		panic("pgfault: Page fault NOT caused by COW");
-	}
+
+	if (!(
+			(err & FEC_WR) && (uvpd[PDX(addr)] & PTE_P) &&
+			(uvpt[PGNUM(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_COW)
+		))
+		panic("pgfault: faulting access is either not a write or not to a COW page");
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
@@ -40,17 +39,16 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 
 	// LAB 4: Your code here.
-	addr = ROUNDDOWN(addr,PGSIZE);
-	if ((r = sys_page_alloc(0, PFTEMP, PTE_P | PTE_U | PTE_W)) < 0) {
-		panic("pgfault: sys_page_alloc PFTEMP (%e)", r);
-	}
-	memcpy(PFTEMP,addr,PGSIZE);
-	if((r=sys_page_map(0,PFTEMP,0,addr,PTE_P | PTE_U | PTE_W))<0){
-		panic("pgfault: sys_page_map (%e)", r);
-	}
-	if((r=sys_page_unmap(0,PFTEMP))<0){
-		panic("pgfault: sys_page_unmap (%e)", r);
-	}
+
+	addr = ROUNDDOWN(addr, PGSIZE);
+	if ((r = sys_page_alloc(0, PFTEMP, PTE_P | PTE_U | PTE_W)) < 0)
+		panic("pgfault: %e", r);
+	memcpy(PFTEMP, addr, PGSIZE);
+	if ((r = sys_page_map(0, PFTEMP, 0, addr, PTE_P | PTE_U | PTE_W)) < 0)
+		panic("pgfault: %e", r);
+	if ((r = sys_page_unmap(0, PFTEMP)) < 0)
+		panic("pgfault: %e", r);
+
 	return;
 	//panic("pgfault not implemented");
 }
@@ -72,35 +70,24 @@ duppage(envid_t envid, unsigned pn)
 	int r;
 
 	// LAB 4: Your code here.
-	//panic("duppage not implemented");
-	uintptr_t addr = pn*PGSIZE;
-	void* p_addr = (void*)addr;
+	void *addr = (void *) (pn*PGSIZE);
 
-	//Lab 5:
-	// If the page table entry has the PTE_SHARE bit set, just copy the mapping directly
-	if(uvpt[pn] & PTE_SHARE){
-		if((r=sys_page_map(0,p_addr,envid,p_addr,uvpt[pn] & PTE_SYSCALL))<0){
-			//failed!
+	if (uvpt[pn] & PTE_SHARE) {
+		if ((r = sys_page_map(0, addr, envid, addr, uvpt[pn] & PTE_SYSCALL)) < 0) 
 			return r;
-		}
 		return 0;
 	}
 
-	if((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)){
-		// Map page COW, U and P in child
-		if((r=sys_page_map(0,p_addr,envid,p_addr,PTE_P|PTE_U|PTE_COW))){
-			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
-		}
-		// Map page COW, U and P in parent
-		if ((r = sys_page_map(0, p_addr, 0, p_addr, PTE_P | PTE_U | PTE_COW)) < 0){
-			panic("duppage:sys_page_map fail! pn=%08x (%e)",pn,r);
-		}
-	}
-	//只读页
-	else if((r = sys_page_map(0, p_addr, envid, p_addr, PTE_P | PTE_U)) < 0){
-		panic("duppage:sys_page_map fail! read-only pn=%08x (%e)",pn,r);
-	}
+	if ((uvpt[pn] & PTE_W) || (uvpt[pn] & PTE_COW)) {
+		if ((r = sys_page_map(0, addr, envid, addr, PTE_P | PTE_U | PTE_COW)) < 0)
+			return r;
+		if ((r = sys_page_map(0, addr, 0, addr, PTE_P | PTE_U | PTE_COW)) < 0)
+			return r;
+	} else if ((r = sys_page_map(0, addr, envid, addr, PTE_P | PTE_U)) < 0)
+		return r;
 
+
+	// panic("duppage not implemented");
 	return 0;
 }
 
@@ -124,51 +111,37 @@ envid_t
 fork(void)
 {
 	// LAB 4: Your code here.
-	//panic("fork not implemented");
-	envid_t envid;
+
 	int r;
+	envid_t envid;
+	uintptr_t addr;
 
 	set_pgfault_handler(pgfault);
 
-	if((envid = sys_exofork())==0){
-		// We're the child.
-		// The copied value of the global variable 'thisenv'
-		// is no longer valid (it refers to the parent!).
-		// Fix it and return 0.
+	if ((envid = sys_exofork()) == 0) {
+		// child
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
-	} else if(envid<0){
-		panic("fork:sys_exfork:%e\n",envid);
 	}
 
-	// We're in the parent
+	for (addr = 0; addr < USTACKTOP; addr += PGSIZE) {
+		if ((uvpd[PDX(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_P)
+			&& (uvpt[PGNUM(addr)] & PTE_U))
+			duppage(envid, PGNUM(addr));
+	}
 
-	//拷贝父进程的页映射关系到子进程
-	uintptr_t addr;
-	for(addr=0;addr<USTACKTOP;addr+=PGSIZE){
-		if((uvpd[PDX(addr)] & PTE_P)
-		   && (uvpt[PGNUM(addr)] & PTE_P) && (uvpt[PGNUM(addr)] & PTE_U)){
-			duppage(envid,PGNUM(addr));
-		}
-	}
-	//allocate a new page for the child's user exception stack
-	//The child can't do this themselves
-	// because the mechanism by which it would is to run the pgfault handler, which
-	// needs to run on the exception stack (catch 22).
-	if((r=sys_page_alloc(envid, (void *)(UXSTACKTOP-PGSIZE),
-						 PTE_W | PTE_U | PTE_P)<0)){
-		panic("fork:sys_page_alloc fail! (%e)\n",r);
-	}
+	if ((r = sys_page_alloc(envid, (void *) (UXSTACKTOP - PGSIZE), 
+		PTE_P | PTE_U | PTE_W)) < 0)
+		panic("fork: %e", r);
 
 	extern void _pgfault_upcall();
-	// Set page fault handler for the child
-	if ((r = sys_env_set_pgfault_upcall(envid, _pgfault_upcall)) < 0)
-		panic("sys_env_set_pgfault_upcall: %e\n", r);
+	sys_env_set_pgfault_upcall(envid, _pgfault_upcall);
 
 	if ((r = sys_env_set_status(envid, ENV_RUNNABLE)) < 0)
-		panic("fork:sys_env_set_status: %e", r);
+		panic("fork: %e", r);
 
 	return envid;
+	panic("fork not implemented");
 }
 
 // Challenge!
