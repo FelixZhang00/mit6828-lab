@@ -22,8 +22,10 @@ set(SOURCE_FILES
         inc/fs.h
         inc/kbdreg.h
         inc/lib.h
+        inc/malloc.h
         inc/memlayout.h
         inc/mmu.h
+        inc/ns.h
         inc/partition.h
         inc/stab.h
         inc/stdarg.h
@@ -36,6 +38,8 @@ set(SOURCE_FILES
         kern/console.c
         kern/console.h
         kern/cpu.h
+        kern/e1000.c
+        kern/e1000.h
         kern/entry.S
         kern/entrypgdir.c
         kern/env.c
@@ -50,6 +54,9 @@ set(SOURCE_FILES
         kern/monitor.h
         kern/mpconfig.c
         kern/mpentry.S
+        kern/pci.c
+        kern/pci.h
+        kern/pcireg.h
         kern/picirq.c
         kern/picirq.h
         kern/pmap.c
@@ -61,6 +68,8 @@ set(SOURCE_FILES
         kern/spinlock.h
         kern/syscall.c
         kern/syscall.h
+        kern/time.c
+        kern/time.h
         kern/trap.c
         kern/trap.h
         kern/trapentry.S
@@ -74,6 +83,8 @@ set(SOURCE_FILES
         lib/fprintf.c
         lib/ipc.c
         lib/libmain.c
+        lib/malloc.c
+        lib/nsipc.c
         lib/pageref.c
         lib/panic.c
         lib/pfentry.S
@@ -82,10 +93,151 @@ set(SOURCE_FILES
         lib/printf.c
         lib/printfmt.c
         lib/readline.c
+        lib/sockets.c
         lib/spawn.c
         lib/string.c
         lib/syscall.c
         lib/wait.c
+        net/lwip/api/api_lib.c
+        net/lwip/api/api_msg.c
+        net/lwip/api/err.c
+        net/lwip/api/netbuf.c
+        net/lwip/api/netdb.c
+        net/lwip/api/netifapi.c
+        net/lwip/api/sockets.c
+        net/lwip/api/tcpip.c
+        net/lwip/core/ipv4/autoip.c
+        net/lwip/core/ipv4/icmp.c
+        net/lwip/core/ipv4/igmp.c
+        net/lwip/core/ipv4/inet.c
+        net/lwip/core/ipv4/inet_chksum.c
+        net/lwip/core/ipv4/ip.c
+        net/lwip/core/ipv4/ip_addr.c
+        net/lwip/core/ipv4/ip_frag.c
+        net/lwip/core/ipv6/icmp6.c
+        net/lwip/core/ipv6/inet6.c
+        net/lwip/core/ipv6/ip6.c
+        net/lwip/core/ipv6/ip6_addr.c
+        net/lwip/core/snmp/asn1_dec.c
+        net/lwip/core/snmp/asn1_enc.c
+        net/lwip/core/snmp/mib2.c
+        net/lwip/core/snmp/mib_structs.c
+        net/lwip/core/snmp/msg_in.c
+        net/lwip/core/snmp/msg_out.c
+        net/lwip/core/dhcp.c
+        net/lwip/core/dns.c
+        net/lwip/core/init.c
+        net/lwip/core/mem.c
+        net/lwip/core/memp.c
+        net/lwip/core/netif.c
+        net/lwip/core/pbuf.c
+        net/lwip/core/raw.c
+        net/lwip/core/stats.c
+        net/lwip/core/sys.c
+        net/lwip/core/tcp.c
+        net/lwip/core/tcp_in.c
+        net/lwip/core/tcp_out.c
+        net/lwip/core/udp.c
+        net/lwip/include/ipv4/lwip/autoip.h
+        net/lwip/include/ipv4/lwip/icmp.h
+        net/lwip/include/ipv4/lwip/igmp.h
+        net/lwip/include/ipv4/lwip/inet.h
+        net/lwip/include/ipv4/lwip/inet_chksum.h
+        net/lwip/include/ipv4/lwip/ip.h
+        net/lwip/include/ipv4/lwip/ip_addr.h
+        net/lwip/include/ipv4/lwip/ip_frag.h
+        net/lwip/include/ipv6/lwip/icmp.h
+        net/lwip/include/ipv6/lwip/inet.h
+        net/lwip/include/ipv6/lwip/ip.h
+        net/lwip/include/ipv6/lwip/ip_addr.h
+        net/lwip/include/lwip/api.h
+        net/lwip/include/lwip/api_msg.h
+        net/lwip/include/lwip/arch.h
+        net/lwip/include/lwip/debug.h
+        net/lwip/include/lwip/def.h
+        net/lwip/include/lwip/dhcp.h
+        net/lwip/include/lwip/dns.h
+        net/lwip/include/lwip/err.h
+        net/lwip/include/lwip/init.h
+        net/lwip/include/lwip/mem.h
+        net/lwip/include/lwip/memp.h
+        net/lwip/include/lwip/memp_std.h
+        net/lwip/include/lwip/netbuf.h
+        net/lwip/include/lwip/netdb.h
+        net/lwip/include/lwip/netif.h
+        net/lwip/include/lwip/netifapi.h
+        net/lwip/include/lwip/opt.h
+        net/lwip/include/lwip/pbuf.h
+        net/lwip/include/lwip/raw.h
+        net/lwip/include/lwip/sio.h
+        net/lwip/include/lwip/snmp.h
+        net/lwip/include/lwip/snmp_asn1.h
+        net/lwip/include/lwip/snmp_msg.h
+        net/lwip/include/lwip/snmp_structs.h
+        net/lwip/include/lwip/sockets.h
+        net/lwip/include/lwip/stats.h
+        net/lwip/include/lwip/sys.h
+        net/lwip/include/lwip/tcp.h
+        net/lwip/include/lwip/tcpip.h
+        net/lwip/include/lwip/udp.h
+        net/lwip/include/netif/etharp.h
+        net/lwip/include/netif/loopif.h
+        net/lwip/include/netif/ppp_oe.h
+        net/lwip/include/netif/slipif.h
+        net/lwip/jos/arch/i386/setjmp.h
+        net/lwip/jos/arch/cc.h
+        net/lwip/jos/arch/longjmp.S
+        net/lwip/jos/arch/perf.h
+        net/lwip/jos/arch/perror.c
+        net/lwip/jos/arch/perror.h
+        net/lwip/jos/arch/queue.h
+        net/lwip/jos/arch/setjmp.h
+        net/lwip/jos/arch/sys_arch.c
+        net/lwip/jos/arch/sys_arch.h
+        net/lwip/jos/arch/thread.c
+        net/lwip/jos/arch/thread.h
+        net/lwip/jos/arch/threadq.h
+        net/lwip/jos/jif/jif.c
+        net/lwip/jos/jif/jif.h
+        net/lwip/jos/lwipopts.h
+        net/lwip/netif/ppp/auth.c
+        net/lwip/netif/ppp/auth.h
+        net/lwip/netif/ppp/chap.c
+        net/lwip/netif/ppp/chap.h
+        net/lwip/netif/ppp/chpms.c
+        net/lwip/netif/ppp/chpms.h
+        net/lwip/netif/ppp/fsm.c
+        net/lwip/netif/ppp/fsm.h
+        net/lwip/netif/ppp/ipcp.c
+        net/lwip/netif/ppp/ipcp.h
+        net/lwip/netif/ppp/lcp.c
+        net/lwip/netif/ppp/lcp.h
+        net/lwip/netif/ppp/magic.c
+        net/lwip/netif/ppp/magic.h
+        net/lwip/netif/ppp/md5.c
+        net/lwip/netif/ppp/md5.h
+        net/lwip/netif/ppp/pap.c
+        net/lwip/netif/ppp/pap.h
+        net/lwip/netif/ppp/ppp.c
+        net/lwip/netif/ppp/ppp.h
+        net/lwip/netif/ppp/ppp_oe.c
+        net/lwip/netif/ppp/pppdebug.h
+        net/lwip/netif/ppp/randm.c
+        net/lwip/netif/ppp/randm.h
+        net/lwip/netif/ppp/vj.c
+        net/lwip/netif/ppp/vj.h
+        net/lwip/netif/ppp/vjbsdhdr.h
+        net/lwip/netif/etharp.c
+        net/lwip/netif/ethernetif.c
+        net/lwip/netif/loopif.c
+        net/lwip/netif/slipif.c
+        net/input.c
+        net/ns.h
+        net/output.c
+        net/serv.c
+        net/testinput.c
+        net/testoutput.c
+        net/timer.c
         user/badsegment.c
         user/breakpoint.c
         user/buggyhello.c
@@ -94,6 +246,8 @@ set(SOURCE_FILES
         user/divzero.c
         user/dumbfork.c
         user/echo.c
+        user/echosrv.c
+        user/echotest.c
         user/evilhello.c
         user/fairness.c
         user/faultalloc.c
@@ -110,6 +264,7 @@ set(SOURCE_FILES
         user/faultwritekernel.c
         user/forktree.c
         user/hello.c
+        user/httpd.c
         user/icode.c
         user/idle.c
         user/init.c
@@ -142,6 +297,7 @@ set(SOURCE_FILES
         user/testptelibrary.c
         user/testpteshare.c
         user/testshell.c
+        user/testtime.c
         user/writemotd.c
         user/yield.c)
 
@@ -151,6 +307,26 @@ include_directories(fs)
 include_directories(inc)
 include_directories(kern)
 include_directories(lib)
+include_directories(net)
+include_directories(net/lwip)
+include_directories(net/lwip/api)
+include_directories(net/lwip/core)
+include_directories(net/lwip/core/ipv4)
+include_directories(net/lwip/core/ipv6)
+include_directories(net/lwip/core/snmp)
+include_directories(net/lwip/include)
+include_directories(net/lwip/include/ipv4)
+include_directories(net/lwip/include/ipv4/lwip)
+include_directories(net/lwip/include/ipv6)
+include_directories(net/lwip/include/ipv6/lwip)
+include_directories(net/lwip/include/lwip)
+include_directories(net/lwip/include/netif)
+include_directories(net/lwip/jos)
+include_directories(net/lwip/jos/arch)
+include_directories(net/lwip/jos/arch/i386)
+include_directories(net/lwip/jos/jif)
+include_directories(net/lwip/netif)
+include_directories(net/lwip/netif/ppp)
 include_directories(user)
 
 add_executable(mit6828_lab ${SOURCE_FILES})
