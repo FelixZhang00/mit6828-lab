@@ -41,7 +41,46 @@ e1000_attach(struct pci_func *pcif)
     // Program the Transmit IPG Register
     e1000[E1000_TIPG] = 10|(4<<10)|(6<<20);
 
+    //配置mac地址
+    e1000[E1000_RAL] = MAC[0];
+    e1000[E1000_RAH] = MAC[1];
+    e1000[E1000_RAH] |= 0x80000000;
 
+    // -------------------Receive initialization--------------------
+    // Program the Receive Address Registers
+    for (e1000[E1000_EERD] = 0x0, e1000[E1000_EERD] |= E1000_EERD_START;
+         !(e1000[E1000_EERD] & E1000_EERD_DONE); e1000[E1000_EERD] >>= 16);
+    e1000[E1000_RAL] = e1000[E1000_EERD] >> 16;
+
+    for (e1000[E1000_EERD] = 0x1 << 8, e1000[E1000_EERD] |= E1000_EERD_START;
+         !(e1000[E1000_EERD] & E1000_EERD_DONE); e1000[E1000_EERD] >>= 16);
+    e1000[E1000_RAL] |= e1000[E1000_EERD] & 0xffff0000;
+
+    for (e1000[E1000_EERD] = 0x2 << 8, e1000[E1000_EERD] |= E1000_EERD_START;
+         !(e1000[E1000_EERD] & E1000_EERD_DONE); e1000[E1000_EERD] >>= 16);
+    e1000[E1000_RAH] = e1000[E1000_EERD] >> 16;
+
+    // Program the Receive Descriptor Base Address Registers
+    e1000[E1000_RDBAL] = PADDR(rx_desc_arr);
+    e1000[E1000_RDBAH] = 0;
+
+    // // Set the Receive Descriptor Length Register
+    e1000[E1000_RDLEN] = sizeof(struct rx_desc) * E1000_RXDESC;
+
+    // // Set the Receive Descriptor Head and Tail Registers
+    e1000[E1000_RDH] = 0;
+    e1000[E1000_RDT] = 0;
+
+    // Initialize the Receive Control Register
+    // e1000[E1000_RCTL] = 0|E1000_RCTL_EN|E1000_RCTL_BSIZE|E1000_RCTL_SECRC;
+    e1000[E1000_RCTL] = E1000_RCTL_EN;
+    e1000[E1000_RCTL] &= ~E1000_RCTL_LPE;
+    e1000[E1000_RCTL] &= ~E1000_RCTL_LBM;
+    e1000[E1000_RCTL] &= ~E1000_RCTL_RDMTS;
+    e1000[E1000_RCTL] &= ~E1000_RCTL_MO;
+    e1000[E1000_RCTL] |= E1000_RCTL_BAM;
+    e1000[E1000_RCTL] |= E1000_RCTL_BSIZE;
+    e1000[E1000_RCTL] |= E1000_RCTL_SECRC;
 
     return 0;
 }
