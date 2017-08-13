@@ -65,3 +65,34 @@ init_desc_array()
     }
 }
 
+int
+e1000_transmit(char *data, size_t len)
+{
+    uint32_t tdt = e1000[E1000_TDT];
+
+    // Check that the next tx desc is free
+    if (tx_desc_arr[tdt].status & E1000_TXD_STAT_DD) {
+
+        if (len > TX_PKT_SIZE)
+            len = TX_PKT_SIZE;
+
+        memmove(tx_pkt_buf[tdt].buf, data, len);
+
+        tx_desc_arr[tdt].length = len;
+
+        tx_desc_arr[tdt].status &= ~E1000_TXD_STAT_DD;
+        tx_desc_arr[tdt].cmd |= E1000_TXD_CMD_RS;
+        tx_desc_arr[tdt].cmd |= E1000_TXD_CMD_EOP;
+
+        e1000[E1000_TDT] = (tdt + 1) % E1000_TXDESC;
+        return 0;
+    }
+    return -E_TX_FULL;
+}
+
+size_t
+e1000_receive(char *data, size_t len)
+{
+    return 0;
+}
+

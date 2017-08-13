@@ -96,5 +96,7 @@ struct rx_pkt
 } __attribute__((packed));
 
 int e1000_attach(struct pci_func *pcif);
+int e1000_transmit(char *data, size_t len);
+size_t e1000_receive(char *data, size_t len);
 
 #endif	// JOS_KERN_E1000_H
