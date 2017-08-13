@@ -268,33 +268,38 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
 	// IRQ line or other reasons. We don't care.
-	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SPURIOUS) {
+    else if (tf->tf_trapno == IRQ_OFFSET + IRQ_SPURIOUS) {
 		cprintf("Spurious interrupt on irq 7\n");
 		print_trapframe(tf);
 		return;
 	}
 
-
-	// Add time tick increment to clock interrupts.
-	// Be careful! In multiprocessors, clock interrupts are
-	// triggered on every CPU.
-	// LAB 6: Your code here.
-
-
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
 
 	// Handle keyboard and serial interrupts.
 	// LAB 5: Your code here.
-	if (tf->tf_trapno == IRQ_OFFSET + IRQ_KBD) {
+    else if (tf->tf_trapno == IRQ_OFFSET + IRQ_KBD) {
 		kbd_intr();
 		return;
-	}
-
-	if (tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL) {
+	} else if (tf->tf_trapno == IRQ_OFFSET + IRQ_SERIAL) {
 		serial_intr();
 		return;
 	}
+
+    // Add time tick increment to clock interrupts.
+    // Be careful! In multiprocessors, clock interrupts are
+    // triggered on every CPU.
+    // LAB 6: Your code here.
+    else if(tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER){
+        //只处理一个cpu即可
+        if(thiscpu->cpu_id == 0){
+            time_tick();
+        }
+        lapic_eoi();
+        sched_yield();
+        return;
+    }
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
