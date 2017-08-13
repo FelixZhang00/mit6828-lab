@@ -259,12 +259,18 @@ trap_dispatch(struct Trapframe *tf)
 		// interrupt using lapic_eoi() before calling the scheduler!
 		// LAB 4: Your code here.
 	else if(trap_no == IRQ_OFFSET+IRQ_TIMER){
+        // Add time tick increment to clock interrupts.
+        // Be careful! In multiprocessors, clock interrupts are
+        // triggered on every CPU.
+        // LAB 6: Your code here.
+        //只处理一个cpu即可
+        if(thiscpu->cpu_id == 0){
+            time_tick();
+        }
 		lapic_eoi();
 		sched_yield();
 		return;
 	}
-
-
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
 	// IRQ line or other reasons. We don't care.
@@ -286,20 +292,6 @@ trap_dispatch(struct Trapframe *tf)
 		serial_intr();
 		return;
 	}
-
-    // Add time tick increment to clock interrupts.
-    // Be careful! In multiprocessors, clock interrupts are
-    // triggered on every CPU.
-    // LAB 6: Your code here.
-    else if(tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER){
-        //只处理一个cpu即可
-        if(thiscpu->cpu_id == 0){
-            time_tick();
-        }
-        lapic_eoi();
-        sched_yield();
-        return;
-    }
 
 	// Unexpected trap: The user process or the kernel has a bug.
 	print_trapframe(tf);
